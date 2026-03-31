@@ -68,7 +68,7 @@ drwxr-xr-x  3 root  admin   96 Apr  1 09:00 ..
 ### 디렉토리 생성 및 이동
 
 ```zsh
-$ mkdir -p workspace/docker-practice # mkdir = make directory / -p 옵션은 만들고자 하는 디렉토리 상위 경로에, 명령어에서 지칭한 디렉토리가 없더라도 만들어서 실행하는 기능이다.
+$ mkdir -p workspace/docker-practice # mkdir = make directory / # -p = 경로에 필요한 모든 디렉토리를 한 번에 생성하는 옵션
 $ cd workspace/docker-practice # cd = change directory
 $ pwd
 /Users/user/workspace/docker-practice
@@ -108,14 +108,19 @@ test.txt
 
 ```zsh
 $ ls -l
--rw-r--r--  1 user  staff  0 Apr  1 10:10 test.txt # 두 번째 글자부터 아홉 자리의 문자가 권한을 나타낸다.(rw-r--r--)
-```
+-rw-r--r--  1 user  staff  0 Apr  1 10:10 test.txt
+# 첫 글자는 파일 타입(- : 파일, d : 디렉토리)
+# 이후 아홉 자리(rw-r--r--)는 권한을 뜻하며, 세 자리씩 나누어 각 [소유자][그룹][기타]의 권한 구조를 담당한다.```
 #### r = read, w = write, x = execute
 
 ### 권한 변경
 
 ```zsh
-$ chmod 755 test.txt # chmod = change mode / 755는 빈번하게 사용되는 권한이다. [소유자][그룹][기타]의 권한 구조에서, 소유자에게만 write를 부여하기 때문.
+$ chmod 755 test.txt
+# chmod = change mode
+# 755는 빈번하게 사용되는 권한이다. 소유자에게는 전체 권한을, 그 외에는 읽기/실행.
+
+
 $ ls -l
 -rwxr-xr-x  1 user  staff  0 Apr  1 10:10 test.txt
 ```
@@ -134,14 +139,105 @@ drwxr-xr-x  5 user  staff  160 Apr  1 10:10 .
 
 ```zsh
 $ docker --version
-Docker version 26.x
+Docker version 28.5.2, build ecc6942
 
 $ docker info
-Server:
- Containers: 0
- Running: 0
- Paused: 0
- Stopped: 0
+Client:
+ Version:    28.5.2 # 현재 사용 중인 Docker CLI 버전
+ Context:    orbstack # 어떤 Docker 환경에 연결되어 있는지(OrbStack)
+ Debug Mode: false # 디버깅 로그 출력 여부 (false -> 일반 모드)
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.) # Docker 이미지 빌드 확장 도구 / 멀티 플랫폼 빌드 가능(예: amd64, arm64)
+    Version:  v0.29.1
+    Path:     /Users/f22losophysics1091/.docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.) # compose : 여러 컨테이너를 한 번에 관리하는 도구 / 서비스 단위 실행 가능
+    Version:  v2.40.3
+    Path:     /Users/f22losophysics1091/.docker/cli-plugins/docker-compose
+
+Server: # 실제 컨테이너를 실행하는 핵심 엔진
+ Containers: 0 # 이하 현재 컨테이너 상태(하나도 없음.)
+  Running: 0
+  Paused: 0
+  Stopped: 0
+ Images: 0 # 다운로드 된 Docker 이미지 없음.
+ Server Version: 28.5.2 # Docker 엔진 버전(Client와 동일)
+ Storage Driver: overlay2 # 파일 저장 방식(컨테이너 파일 시스템 구현 방식), 여러 레이어를 겹쳐서 사용하는 구조(이미지 + 변경사항)
+  Backing Filesystem: btrfs # 실제 디스크 파일 시스템
+  Supports d_type: true # 파일 타입 정보 지원 여부 (성능/안정성 관련)
+  Using metacopy: false
+  Native Overlay Diff: true # 레이어 간 변경사항 비교 최적화 기능
+  userxattr: false
+ Logging Driver: json-file # 컨테이너 로그를 JSON 파일로 저장
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 2
+ Plugins: # Docker 기능 플러그인
+  Volume: local # 기본 볼륨 저장 방식
+  Network: bridge host ipvlan macvlan null overlay # 사용 가능한 네트워크 모드(bridge: 기본 네트워크 (컨테이너 간 통신), host: 호스트와 동일 네트워크, overlay: 여러 서버 간 네트워크 (클러스터), ...)
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog # 다양한 로그 전송 방식 지원
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
+ Swarm: inactive # Docker 클러스터 기능(현재 비활성화)
+ Runtimes: io.containerd.runc.v2 runc # 실제로 컨테이너를 실행하는 저수준 엔진
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 1c4457e00facac03ce1d75f7b6777a7a851e5c41 # Docker 내부 구성 요소 버전
+ runc version: d842d7719497cc3b774fd71620278ac9e17710e0
+ init version: de40ad0
+ Security Options: # 보안 설정
+  seccomp # 위험한 시스템 호출 제한
+   Profile: builtin
+  cgroupns # 컨테이너 간 자원 격리
+ Kernel Version: 6.17.8-orbstack-00308-g8f9c941121b1
+ Operating System: OrbStack
+ OSType: linux # macOS 위에서 Linux 커널이 실행됨 (OrbStack 내부)
+ Architecture: x86_64 # CPU 아키텍처
+ CPUs: 6
+ Total Memory: 15.67GiB # 도커에 할당된 자원
+ Name: orbstack
+ ID: 575f344e-dd26-4577-8090-d43a3600d00d
+ Docker Root Dir: /var/lib/docker # 이미지, 컨테이너 데이터 저장 위치
+ Debug Mode: false
+ Experimental: false
+ Insecure Registries: # 인증 없이 접근 가능한 레지스트리
+  ::1/128
+  127.0.0.0/8
+ Live Restore Enabled: false # Docker 재시작 시 컨테이너 유지 여부
+ Product License: Community Engine
+ Default Address Pools: # Docker가 내부 네트워크 생성할 때 사용하는 IP 범위
+   Base: 192.168.97.0/24, Size: 24
+   Base: 192.168.107.0/24, Size: 24
+   Base: 192.168.117.0/24, Size: 24
+   Base: 192.168.147.0/24, Size: 24
+   Base: 192.168.148.0/24, Size: 24
+   Base: 192.168.155.0/24, Size: 24
+   Base: 192.168.156.0/24, Size: 24
+   Base: 192.168.158.0/24, Size: 24
+   Base: 192.168.163.0/24, Size: 24
+   Base: 192.168.164.0/24, Size: 24
+   Base: 192.168.165.0/24, Size: 24
+   Base: 192.168.166.0/24, Size: 24
+   Base: 192.168.167.0/24, Size: 24
+   Base: 192.168.171.0/24, Size: 24
+   Base: 192.168.172.0/24, Size: 24
+   Base: 192.168.181.0/24, Size: 24
+   Base: 192.168.183.0/24, Size: 24
+   Base: 192.168.186.0/24, Size: 24
+   Base: 192.168.207.0/24, Size: 24
+   Base: 192.168.214.0/24, Size: 24
+   Base: 192.168.215.0/24, Size: 24
+   Base: 192.168.216.0/24, Size: 24
+   Base: 192.168.223.0/24, Size: 24
+   Base: 192.168.227.0/24, Size: 24
+   Base: 192.168.228.0/24, Size: 24
+   Base: 192.168.229.0/24, Size: 24
+   Base: 192.168.237.0/24, Size: 24
+   Base: 192.168.239.0/24, Size: 24
+   Base: 192.168.242.0/24, Size: 24
+   Base: 192.168.247.0/24, Size: 24
+   Base: fd07:b51a:cc66:d000::/56, Size: 64
+
+WARNING: DOCKER_INSECURE_NO_IPTABLES_RAW is set # 네트워크 보안 관련 경고, iptables 일부 기능 비활성화 상태
 ```
 
 ---
