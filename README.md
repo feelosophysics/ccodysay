@@ -802,19 +802,21 @@ git push -u origin main
 
 ## 13. 트러블슈팅
 
-### 문제 1: Docker 실행 불가
+### 문제 1: git 초기 설정 방법을 찾다가, git config --global user.name을 보고, 실습에서 임의로 해석하여 git config --global charlie라고 적었는데 에러 발생.
 
-* 원인 가설: 시스템 권한 제한
-* 확인: sudo 없이 docker 실행 실패
-* 해결: OrbStack 사용으로 Docker 엔진 실행
+* 원인 가설: 내가 학습한 자료가 틀렸나..? 아니면 다른 뭐가 잘못 되었을까?
+* 확인: user.name은 "이름 설정을 바꾸겠다"는 일종의 '항목 이름(Key)'이기 때문에 반드시 써야 하는 것이었다.
+* 해결: git config --global user.name "charlie"
 
 ---
 
-### 문제 2: 포트 접속 불가
+### 문제 2: ubuntu:alpine에서 bash와 zsh 실행 불가
+<img width="853" height="58" alt="image" src="https://github.com/user-attachments/assets/55e22d18-a3a4-4a2d-9b29-c67156d976fe" />
 
-* 원인 가설: 포트 매핑 오류
-* 확인: docker ps에서 포트 확인
-* 해결: 올바른 포트로 재실행 (-p 옵션 수정)
+* 원인 가설: exec 명령어가 뭐가 잘 안 맞나?
+* 확인: ubuntu:alpine은 경량화된 이미지라, 기본 이미지에 bash와 zsh 없음.
+* 해결: 기본적으로 sh 있어서 해결.
+<img width="443" height="143" alt="image" src="https://github.com/user-attachments/assets/139bac74-e99b-436d-a941-4cc52d34ad4a" />
 
 ---
 
@@ -861,8 +863,3 @@ git push -u origin main
 ## 15. 결론
 
 본 미션을 통해 개발 환경 구축부터 컨테이너 기반 실행, 데이터 관리, 협업 도구 활용까지의 전체 흐름을 경험하였다.
-
-특히 Docker를 통한 재현 가능한 실행 환경 구성과 Git을 통한 코드 관리 방식에 대한 이해를 확보하였다.
-
-```
-```
