@@ -634,34 +634,153 @@ $ docker volume inspect my-data-vol
 ]
 ```
 
+### Docker 실행/운영 실습
+
+실습
+```
+$ docker run -d -p 8080:80 --name test-nginx nginx
+```
+
+로그 보기
+```
+$ docker logs test-nginx
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/04/02 17:21:20 [notice] 1#1: using the "epoll" event method
+2026/04/02 17:21:20 [notice] 1#1: nginx/1.29.7
+2026/04/02 17:21:20 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+2026/04/02 17:21:20 [notice] 1#1: OS: Linux 6.17.8-orbstack-00308-g8f9c941121b1
+2026/04/02 17:21:20 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 20480:1048576
+2026/04/02 17:21:20 [notice] 1#1: start worker processes
+2026/04/02 17:21:20 [notice] 1#1: start worker process 30
+2026/04/02 17:21:20 [notice] 1#1: start worker process 31
+2026/04/02 17:21:20 [notice] 1#1: start worker process 32
+2026/04/02 17:21:20 [notice] 1#1: start worker process 33
+2026/04/02 17:21:20 [notice] 1#1: start worker process 34
+2026/04/02 17:21:20 [notice] 1#1: start worker process 35
+```
+
+내부 들어가기
+```
+docker exec -it test-nginx sh
+```
+
+중지/재시작
+```
+docker stop test-nginx
+docker start test-nginx
+```
+
+컨테이너 내부 상태 확인을 위해 docker exec를 사용하였고,
+실행 로그 확인을 위해 docker logs를 활용하였다.
+
+## Docker Compose
+
+<img width="253" height="205" alt="image" src="https://github.com/user-attachments/assets/48de3f5c-ab1e-443e-a9fe-33f362e157f0" />
+
+지금까지 하나하나 명령어로 입력했던 docker run 방식이 **"수동 조리"**라면, Docker Compose는 미리 작성된 **"자동 요리 레시피"**
+
+docker-compose.yml
+```YAML
+version: "3" # Docker Compose 파일의 버전을 의미합니다. 현재는 보통 3.x 버전을 가장 많이 쓰며, 도커 엔진이 이 파일을 어떻게 해석할지 결정하는 기준이 됩니다.
+services: # 실행할 컨테이너들 목록 : 여기서부터 "내가 실행할 컨테이너들을 정의하겠다"는 선언입니다. 이 아래에 여러 개의 서비스를 적으면 한 번에 여러 컨테이너를 띄울 수 있습니다.
+  web:    # 이 컨테이너의 서비스 이름(컨테이너 별명)입니다. 도커 네트워크 안에서 다른 컨테이너들이 이 이름을 통해 서로를 찾을 수 있습니다. (예: DB 컨테이너가 Web 컨테이너를 찾을 때 web이라는 이름을 사용)
+    image: nginx:alpine # 사용할 이미지
+    ports: # 포트 매핑 설정
+      - "8085:80" # [호스트 포트]:[컨테이너 포트]
+```
+
+이 YAML 파일은 아래의 명령어를 파일 하나로 정리한 것과 완전히 똑같다.
+```
+docker run -d -p 8085:80 --name [프로젝트명]_web nginx:alpine
+```
+
+(Docker Compose의 장점)
+1. 명령어가 길어지지 않음: -p, -v, --name, -e 등 복잡한 옵션을 매번 타이핑할 필요가 없습니다.
+2. 문서화: 이 파일만 있으면 어떤 설정을 사용했는지 누구나 알 수 있고, 나중에도 똑같은 환경을 만들 수 있습니다.
+3. 협업: 팀원에게 docker-compose.yml 파일만 전달하면, 팀원도 똑같은 환경을 즉시 실행할 수 있습니다.
+4. 한꺼번에 실행: 나중에 web뿐만 아니라 db, redis 등 여러 컨테이너를 정의하면 명령어 한 줄로 다 같이 켜고 끌 수 있습니다.
+
+실행
+```
+$ docker compose up -d
+WARN[0000] /Users/f22losophysics1091/Desktop/mis1/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 9/9
+ ✔ web Pulled                                                                                                      4.2s 
+   ✔ 589002ba0eae Already exists                                                                                   0.0s 
+   ✔ 8892f80f46a0 Already exists                                                                                   0.0s 
+   ✔ 91d1c9c22f2c Already exists                                                                                   0.0s 
+   ✔ cf1159c696ee Already exists                                                                                   0.0s 
+   ✔ 3f4ad4352d4f Already exists                                                                                   0.0s 
+   ✔ c2bd5ab17727 Already exists                                                                                   0.0s 
+   ✔ 4d9d41f3822d Already exists                                                                                   0.0s 
+   ✔ 3370263bc02a Already exists                                                                                   0.0s 
+[+] Running 2/2
+ ✔ Network mis1_default  Created                                                                                   0.1s 
+ ✔ Container mis1-web-1  Started                                                                                   0.4s
+```
+
+<img width="582" height="261" alt="image" src="https://github.com/user-attachments/assets/89164503-a4b3-4f89-9631-b1c001183891" />
+
+종료
+```
+$ docker compose down
+WARN[0000] /Users/f22losophysics1091/Desktop/mis1/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Running 2/2
+ ✔ Container mis1-web-1  Removed                                                                                   0.3s 
+ ✔ Network mis1_default  Removed                                                                                   0.1s
+```
+
+docker run 명령을 반복하지 않고,
+docker-compose.yml을 통해 실행 환경을 코드로 관리하였다.
+
 ---
 
-## 12. Git 설정 및 GitHub 연동
+## 12. Git + GitHub
 
 ### Git 설정
+Git: 로컬 버전 관리
+GitHub: 원격 저장소 (협업 플랫폼)
 
-```zsh
-$ git config --global user.name "user"
-$ git config --global user.email "user@example.com"
+설정 및 초기화 (내 컴퓨터에 깃 저장소 만들기)
+```
+git init
+# 현재 폴더를 Git 저장소로 초기화합니다.
+# 이 폴더에 **'전용 CCTV'**를 설치하는 것과 같습니다. 이제부터 파일이 생기거나 지워지는 것을 Git이 감시하기 시작합니다.
 
-$ git config --list
-user.name=user
-user.email=user@example.com
+git config --global user.name
+git config --global user.email
+# 의미: 누가 코드를 짰는지 이름표를 설정하는 것입니다.
+# 중요성: 나중에 협업할 때 "이 코드는 누가 수정했지?"를 확인하기 위해 처음에 한 번만 설정하면 됩니다.
 ```
 
-### 저장소 초기화 및 연결
-
-```zsh
-$ git init
-$ git add .
-$ git commit -m "init"
+변경사항 저장하기 (스냅샷 찍기)
+```
+git add .
+# 의미: 현재 폴더 내의 모든 변경된 파일들을 **'장바구니(Staging Area)'**에 담습니다.
+# 비유: 사진을 찍기 전에 "자, 이 물건들 찍을 거니까 여기 모여!"라고 정렬시키는 단계입니다.
+git commit -m "init"
+# 의미: 장바구니에 담긴 파일들을 확정 지어 **하나의 버전(Snapshot)**으로 저장합니다.
+# -m "init": 이 버전에 대한 짧은 메모입니다.
+# 비유: 정렬된 물건들의 셔터를 눌러 사진을 찍고, 사진 뒤에 "첫 번째 기록"이라고 날짜와 이름을 적어 앨범에 끼워 넣는 것과 같습니다.
 ```
 
-GitHub 저장소 생성 후 원격 연결:
+내 컴퓨터(로컬)에 있는 앨범을 인터넷(GitHub)에 백업
+```
+git remote add origin <repo>
+# 의미: 내 컴퓨터의 Git과 인터넷상의 GitHub 저장소(repo_url)를 연결합니다.
+# origin: 이 연결 통로의 이름입니다. 관례적으로 '기본 원격 저장소'라는 뜻으로 origin이라고 부릅니다.
 
-```zsh
-$ git remote add origin <repository_url>
-$ git push -u origin main
+git push -u origin main
+# 의미: 내 컴퓨터에 저장된 버전들(main 브랜치)을 GitHub(origin)으로 업로드합니다.
+# -u: 처음 한 번만 해주면, 다음부터는 그냥 git push만 쳐도 자동으로 이 주소로 올라가게 기억시키는 옵션입니다.
 ```
 
 ---
