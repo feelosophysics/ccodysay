@@ -557,42 +557,82 @@ Hello bindmount!
 
 ---
 
-## 11. Docker 볼륨 영속성 검증
+## 11. Docker 볼륨 영속성 실습 및 검증
+개념 이해: "컨테이너는 죽어도 데이터는 살아야 한다"
 
-### 볼륨 생성
+바인드 마운트 (이전 단계): 내 컴퓨터의 특정 폴더를 컨테이너에 연결 (개발자가 소스 코드 수정할 때 주로 사용)
+볼륨 (이번 단계): 도커가 관리하는 별도의 저장 공간을 컨테이너에 연결 (데이터베이스 데이터, 로그 등 중요한 데이터를 보관할 때 사용)
+영속성(Persistence): 컨테이너를 삭제(docker rm)해도 도커 볼륨 안에 저장된 데이터는 사라지지 않고 유지되는 성질.
 
+### 1단계: 도커 볼륨 생성
+먼저 데이터를 저장할 '가상의 저장 장치'를 만듭니다.
 ```zsh
-$ docker volume create mydata
+$ docker volume create my-data-vol
 ```
 
-### 컨테이너 실행 및 데이터 저장
-
-```zsh
-$ docker run -d --name vol-test -v mydata:/data ubuntu sleep infinity
-
-$ docker exec -it vol-test zsh
-# echo hello > /data/test.txt
-# cat /data/test.txt
-hello
+확인: docker volume ls를 입력하면 목록에 my-data-vol이 보입니다.
+```
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     my-data-vol
 ```
 
-### 컨테이너 삭제
+### 2단계: 첫 번째 컨테이너에서 데이터 생성
+볼륨을 컨테이너의 /app/data 폴더에 연결하고, 그 안에 파일을 하나 만들어 보겠습니다.
+```
+# ubuntu 이미지를 사용해 컨테이너 실행 (볼륨 연결)
+$ docker run -d --name helper-1 -v my-data-vol:/app/data ubuntu sleep infinity
 
-```zsh
-$ docker rm -f vol-test
+# 컨테이너 내부에 텍스트 파일 생성
+$ docker exec helper-1 bash -c "echo 'This data is permanent' > /app/data/hello.txt"
 ```
 
-### 재실행 후 데이터 확인
+*sleep infinity는 무엇인가요?*
+도커 컨테이너의 아주 중요한 특징입니다: "컨테이너는 실행 중인 프로세스가 없으면 즉시 종료된다."
 
-```zsh
-$ docker run -d --name vol-test2 -v mydata:/data ubuntu sleep infinity
+Nginx 컨테이너: 웹 서버가 백그라운드에서 계속 돌아가고 있기 때문에 가만히 놔둬도 종료되지 않습니다.
 
-$ docker exec -it vol-test2 zsh
-# cat /data/test.txt
-hello
+Ubuntu 컨테이너: 기본적으로 실행할 프로그램이 지정되어 있지 않습니다. 그래서 docker run ubuntu만 하면, "안녕? 나 실행됐어. 근데 할 일 없네? 그럼 종료할게!" 하고 0.1초 만에 꺼져버립니다.
+
+sleep infinity: 컨테이너에게 **"영원히(infinity) 잠자고(sleep) 있어라"**라는 명령을 내리는 것입니다.
+
+이렇게 하면 컨테이너가 죽지 않고 계속 살아있게 되어, 우리가 docker exec 명령어를 써서 컨테이너 안으로 들어가 파일을 확인하거나 내용을 수정할 수 있는 시간을 벌어줍니다.
+
+### 3단계: 컨테이너 삭제 (데이터 유실 위기!)
+이제 데이터를 만들었던 컨테이너를 강제로 삭제해 봅니다. 일반적인 컨테이너라면 내부 데이터도 다 날아갑니다.
+```
+$ docker rm -f helper-1
 ```
 
-데이터가 유지됨을 확인하였다.
+### 4단계: 새로운 컨테이너에서 데이터 확인
+완전 새로운 컨테이너(helper-2)를 만들어서 아까 그 볼륨을 다시 연결해 봅니다.
+```
+# 새 컨테이너 실행 (같은 볼륨 연결)
+$ docker run -d --name helper-2 -v my-data-vol:/app/data ubuntu sleep infinity
+
+# 데이터가 남아있는지 확인
+$ docker exec helper-2 cat /app/data/hello.txt
+This data is permanent
+```
+
+<img width="631" height="167" alt="image" src="https://github.com/user-attachments/assets/63f2c142-ad8a-4658-ab54-3a36c3cd6d0a" />
+
+<img width="891" height="170" alt="image" src="https://github.com/user-attachments/assets/2b48ddd1-d2cb-4b59-a65f-e684738ca5e3" />
+
+```
+$ docker volume inspect my-data-vol
+[
+    {
+        "CreatedAt": "2026-04-03T01:53:38+09:00",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/my-data-vol/_data",
+        "Name": "my-data-vol",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+```
 
 ---
 
