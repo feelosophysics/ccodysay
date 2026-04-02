@@ -58,7 +58,6 @@ git version 2.53.0
 - [x] VSCode와 GitHub 연동 및 푸시 완료
 - [x] (보너스) Docker Compose를 활용한 자동화 환경 구성
 
-
 ---
 
 ## 3. 터미널 기본 조작 로그
@@ -502,6 +501,9 @@ docker build -t my-nginx .
  => => writing image sha256:3635fa6d7c46d765695963621518d46105869cc953f024e095280bbd2008c06a    0.0s # 생성된 이미지에 고유한 주민등록번호 같은 ID(sha256...)를 부여했습니다.
  => => naming to docker.io/library/my-nginx # 이미지의 이름을 처음에 명령하신 대로 my-nginx라고 붙였습니다.
 ```
+
+<img width="661" height="164" alt="image" src="https://github.com/user-attachments/assets/50f174d1-93b2-44b2-b118-4bc404e9d6d9" />
+
 
 ### 컨테이너 실행
 
