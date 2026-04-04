@@ -734,6 +734,7 @@ $ docker logs test-nginx
 ```
 docker exec -it test-nginx sh
 ```
+-it 옵션은 "컨테이너 내부로 들어가서 직접 명령어를 입력하고 결과를 실시간으로 보고 싶을 때" 사용하는 필수 세트 옵션.
 
 중지/재시작
 ```
