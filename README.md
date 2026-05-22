@@ -43,27 +43,27 @@
 | 수행 대분류 | 세부 수행 요구사항 | 구현 상태 | 확인 방법 및 증거 자료 |
 | :--- | :--- | :---: | :--- |
 | **0. 시스템 의존성 패키지** | `openssh-server`, `ufw`, `acl`, `file` 자동 설치 | `완료 (OK)` | `setup.sh` 실행 시 `dpkg` 및 `command -v`로 검사 후 자동 설치 |
-| **1. 기본 보안 & 네트워크** | SSH 접속 포트를 `20022`로 변경 | `완료 (OK)` | `/etc/ssh/sshd_config` 내 `Port 20022` 설정 및 데몬 리슨 확인 |
-| | Root 계정의 원격 로그인 차단 | `완료 (OK)` | `/etc/ssh/sshd_config` 내 `PermitRootLogin no` 설정 확인 |
-| | UFW 방화벽 활성화 및 인바운드 기본 차단 | `완료 (OK)` | `sudo ufw status verbose` (Status: active, Default: deny incoming) |
-| | 허용 포트 제한 (`20022/tcp`, `15034/tcp`만) | `완료 (OK)` | `scrs/ufw_status.png` 증거 확인 |
-| **2. 계정/그룹/권한 체계** | 3개 역할 기반 계정 및 2개 보안 그룹 생성 | `완료 (OK)` | `id` 명령어를 통한 그룹 소속 관계 매핑 검증 |
-| | `$AGENT_HOME` 및 하위 디렉토리 구조 설계 | `완료 (OK)` | `/home/agent-admin/agent-app` 디렉토리 구성 완료 |
-| | `upload_files` 공용 R/W 권한 부여 | `완료 (OK)` | SetGID (`2770`) 및 `agent-common` ACL 대물림 설정 (`getfacl`로 확인) |
-| | `api_keys` 및 로그 디렉토리 R/W 제한 | `완료 (OK)` | SetGID (`2770`) 및 `agent-core` 전용 권한/ACL 설정 (`test` 계정 차단) |
-| **3. 앱 실행 환경 구성** | 핵심 실행 환경 변수 5종 정의 및 배포 | `완료 (OK)` | `.bashrc` 및 `/etc/environment` 등록 확인 |
-| | API 키 파일 (`t_secret.key`) 보안 생성 | `완료 (OK)` | `640` 권한 부여 및 `agent_api_key_test` 문자열 기록 검증 |
-| | 일반 계정(`agent-admin`) 구동 및 부팅 검증 | `완료 (OK)` | Boot Sequence 5단계 `[OK]` 완료 및 `Agent READY` 콘솔 출력 검증 |
-| | 애플리케이션 `15034/tcp` 포트 리슨 검증 | `완료 (OK)` | `ss -tulnp \| grep 15034` 실행 시 프로세스 매핑 확인 |
-| **4. 시스템 관제 자동화** | `monitor.sh` 경로 및 실행 권한 적용 | `완료 (OK)` | 소유자 `agent-dev`, 그룹 `agent-core`, 권한 `750` 적용 완료 |
-| | 프로세스 & 포트 Health Check 기능 구현 | `완료 (OK)` | 정상 작동 시 `[OK]` 출력, 비정상 상태 감지 시 `exit 1` 및 에러 로깅 |
-| | 방화벽 활성화 상태 상시 체크 | `완료 (OK)` | UFW/firewalld 미작동 시 스크립트는 지속하되 `[WARNING]` 출력 |
-| | CPU/MEM/DISK 리소스 실시간 수집 | `완료 (OK)` | `top`, `free`, `df` 명령 기반 정확한 소수점 파싱 및 백분율 수집 |
-| | 임계치 경고 (CPU>20%, MEM>10%, DISK>80%) | `완료 (OK)` | 임계치 초과 시 `[WARNING]`을 콘솔 및 로그에 기록 |
-| | 로그 포맷 정규화 및 자체 용량 관리 (롤오버) | `완료 (OK)` | 표준 포맷 로깅 및 10MB 크기 기준 최대 10개 파일 백업 기능 (`rotate_log`) |
-| **5. 자동 실행 및 배치** | crontab 매분 주기 실행 등록 및 동작 확인 | `완료 (OK)` | `scrs/monitor_log.png`를 통한 매분 단위 타임스탬프 적재 완료 증빙 |
-| **6. 보너스 수행 (선택)** | `report.sh`: 로그 통계 및 구간 분석 리포트 | `완료 (OK)` | 평균/최대/최소 자원 사용량 분석 및 `scrs/statistics_report.png` 증빙 |
-| | `archive.sh`: 시간 기반 로그 압축/삭제 정책 | `완료 (OK)` | 7일 경과 로그 gzip 압축 후 아카이브 이동, 30일 경과 아카이브 자동 삭제 |
+| **1. 기본 보안 & 네트워크** | SSH 접속 포트를 `20022`로 변경 | `완료` | `/etc/ssh/sshd_config` 내 `Port 20022` 설정 및 데몬 리슨 확인 |
+| | Root 계정의 원격 로그인 차단 | `완료` | `/etc/ssh/sshd_config` 내 `PermitRootLogin no` 설정 확인 |
+| | UFW 방화벽 활성화 및 인바운드 기본 차단 | `완료` | `sudo ufw status verbose` (Status: active, Default: deny incoming) |
+| | 허용 포트 제한 (`20022/tcp`, `15034/tcp`만) | `완료` | `scrs/ufw_status.png` 증거 확인 |
+| **2. 계정/그룹/권한 체계** | 3개 역할 기반 계정 및 2개 보안 그룹 생성 | `완료` | `id` 명령어를 통한 그룹 소속 관계 매핑 검증 |
+| | `$AGENT_HOME` 및 하위 디렉토리 구조 설계 | `완료` | `/home/agent-admin/agent-app` 디렉토리 구성 완료 |
+| | `upload_files` 공용 R/W 권한 부여 | `완료` | SetGID (`2770`) 및 `agent-common` ACL 대물림 설정 (`getfacl`로 확인) |
+| | `api_keys` 및 로그 디렉토리 R/W 제한 | `완료` | SetGID (`2770`) 및 `agent-core` 전용 권한/ACL 설정 (`test` 계정 차단) |
+| **3. 앱 실행 환경 구성** | 핵심 실행 환경 변수 5종 정의 및 배포 | `완료` | `.bashrc` 및 `/etc/environment` 등록 확인 |
+| | API 키 파일 (`t_secret.key`) 보안 생성 | `완료` | `640` 권한 부여 및 `agent_api_key_test` 문자열 기록 검증 |
+| | 일반 계정(`agent-admin`) 구동 및 부팅 검증 | `완료` | Boot Sequence 5단계 `[OK]` 완료 및 `Agent READY` 콘솔 출력 검증 |
+| | 애플리케이션 `15034/tcp` 포트 리슨 검증 | `완료` | `ss -tulnp \| grep 15034` 실행 시 프로세스 매핑 확인 |
+| **4. 시스템 관제 자동화** | `monitor.sh` 경로 및 실행 권한 적용 | `완료` | 소유자 `agent-dev`, 그룹 `agent-core`, 권한 `750` 적용 완료 |
+| | 프로세스 & 포트 Health Check 기능 구현 | `완료` | 정상 작동 시 `[OK]` 출력, 비정상 상태 감지 시 `exit 1` 및 에러 로깅 |
+| | 방화벽 활성화 상태 상시 체크 | `완료` | UFW/firewalld 미작동 시 스크립트는 지속하되 `[WARNING]` 출력 |
+| | CPU/MEM/DISK 리소스 실시간 수집 | `완료` | `top`, `free`, `df` 명령 기반 정확한 소수점 파싱 및 백분율 수집 |
+| | 임계치 경고 (CPU>20%, MEM>10%, DISK>80%) | `완료` | 임계치 초과 시 `[WARNING]`을 콘솔 및 로그에 기록 |
+| | 로그 포맷 정규화 및 자체 용량 관리 (롤오버) | `완료` | 표준 포맷 로깅 및 10MB 크기 기준 최대 10개 파일 백업 기능 (`rotate_log`) |
+| **5. 자동 실행 및 배치** | crontab 매분 주기 실행 등록 및 동작 확인 | `완료` | `scrs/monitor_log.png`를 통한 매분 단위 타임스탬프 적재 완료 증빙 |
+| **6. 보너스 수행 (선택)** | `report.sh`: 로그 통계 및 구간 분석 리포트 | `완료` | 평균/최대/최소 자원 사용량 분석 및 `scrs/statistics_report.png` 증빙 |
+| | `archive.sh`: 시간 기반 로그 압축/삭제 정책 | `완료` | 7일 경과 로그 gzip 압축 후 아카이브 이동, 30일 경과 아카이브 자동 삭제 |
 
 ---
 
