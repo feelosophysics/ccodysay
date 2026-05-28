@@ -40,7 +40,7 @@ flowchart TD
     end
 
     %% 파일 저장소
-    subgraph Physical_Storage ['Physical Storage (JSONL / UTF-8)']
+    subgraph Physical_Storage ["Physical Storage (JSONL / UTF-8)"]
         Dir_Data["📁 data/"]
         File_Tx["transactions.jsonl"]
         File_Cat["categories.jsonl"]
