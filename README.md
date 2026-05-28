@@ -13,34 +13,34 @@
 ```mermaid
 flowchart TD
     %% CLI 및 Presentation 계층
-    subgraph Presentation_Layer [Presentation Layer]
+    subgraph Presentation_Layer ["Presentation Layer"]
         CLI["📁 cli.py (argparse / Interactive Loop)"]
     end
 
     %% 공통 데코레이터
-    subgraph AOP_Aspects [Aspect-Oriented Aspects (Decorators)]
+    subgraph AOP_Aspects ["Aspect-Oriented Aspects (Decorators)"]
         DEC_Err["🛡️ handle_errors_gracefully"]
         DEC_Time["⏱️ log_execution_time"]
         DEC_Act["📝 log_activity"]
     end
 
     %% 비즈니스 서비스 계층
-    subgraph Business_Layer [Business Layer]
+    subgraph Business_Layer ["Business Layer"]
         Service["🧠 service.py (BudgetService)"]
     end
 
     %% 데이터 액세스 계층
-    subgraph Data_Access_Layer [Data Access Layer]
+    subgraph Data_Access_Layer ["Data Access Layer"]
         Repo["💾 repository.py (BaseRepository / Child Repos)"]
     end
 
     %% 모델 계층
-    subgraph Model_Layer [Model Layer]
+    subgraph Model_Layer ["Model Layer"]
         Model["💎 models.py (Dataclasses: Transaction, Category, Budget, RecurringRule)"]
     end
 
     %% 파일 저장소
-    subgraph Physical_Storage [Physical Storage (JSONL / UTF-8)]
+    subgraph Physical_Storage ['Physical Storage (JSONL / UTF-8)']
         Dir_Data["📁 data/"]
         File_Tx["transactions.jsonl"]
         File_Cat["categories.jsonl"]
