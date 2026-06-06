@@ -34,6 +34,22 @@ SELECT name, sql FROM sqlite_master WHERE type='index';
 
 ---
 
+소개
+1. 미션 소개
+2. 스키마 소개 + 데이터 소개
+
+
+
+
+
+
+
+
+
+
+
+---
+
 ### 1. SQLite에는 '배경에서 계속 도는 관리자'가 없습니다.
 Oracle, MySQL, PostgreSQL 같은 대형 서버형 데이터베이스(RDBMS)는 백그라운드 프로세스(Daemon)가 늘 상주하면서 **"어? RENTAL 테이블 데이터가 20% 이상 바뀌었네? 알아서 통계 갱신(Auto-Analyze)해야지"** 하고 자동으로 작업을 돕습니다.
 
