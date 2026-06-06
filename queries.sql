@@ -164,7 +164,7 @@ ORDER BY total_rentals DESC, b.title ASC;
 -- 설명: 대여 중인 책이 없는 회원(NULL)을 포함하여, 전체 회원이 현재 빌려 쓰고 있는 상태를 보여줍니다.
 -- 작동 원리:
 --   - MEMBER(왼쪽)의 10명 데이터를 전부 살려두고, RENTAL 테이블 중 상태가 'RENTED'나 'OVERDUE'인 건들만 연결합니다.
---   - ON 절의 다중 조건: r.member_id = m.id 뒤에 `AND r.status != 'RETURNED'` 조건을 추가하여
+--   - ON 절의 다중 조건: r.member_id = m.id 뒤에 `AND r.status IN ('RENTED', 'OVERDUE')` 조건을 추가하여
 --     반납 완료된 과거 이력은 조인 연결 대상에서 제외하고, 오직 '현재 대여 중'인 관계만 시각화합니다.
 SELECT 
     m.id AS member_id,
@@ -237,7 +237,7 @@ ORDER BY count DESC;
 
 
 -- =============================================================================
--- PART D: 서브쿼리(Subquery) 조회 (1개)
+-- PART D: 서브쿼리(Subquery) 조회 (2개)
 -- 목적: 쿼리 안에 또 다른 쿼리를 삽입하여 동적으로 계산된 결과를 메인 쿼리의 조건으로 활용
 -- =============================================================================
 
@@ -263,7 +263,7 @@ ORDER BY price DESC;
 --   - 메인 쿼리의 각 MEMBER 행(m)에 대해 서브쿼리가 작동합니다.
 --   - RENTAL 테이블을 뒤져서 현재 돌고 있는 회원(m.id)과 같은 member_id가 존재하는지 확인합니다.
 --   - 단 한 건도 매칭되지 않는(EXISTS의 결과가 거짓인) 회원 정보만 최종 리턴합니다.
---   - LEFT JOIN 후 NULL을 찾는 방식보다, 엔진 레벨에서 얼리 익스exit(Early Exit - 매칭되는 게 한 개라도 나오면 탐색을 즉시 멈춤)이 작동하여 성능 최적화에 탁월합니다.
+--   - LEFT JOIN 후 NULL을 찾는 방식보다, 엔진 레벨에서 얼리 엑싯(Early Exit - 매칭되는 게 한 개라도 나오면 탐색을 즉시 멈춤)이 작동하여 성능 최적화에 탁월합니다.
 SELECT id, name, email, join_date
 FROM MEMBER m
 WHERE NOT EXISTS (

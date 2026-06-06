@@ -1,0 +1,23 @@
+/*
+select
+from
+where
+GROUP BY
+HAVING
+ORDER
+LIMIT
+
+--
+
+FROM
+WHERE
+GROUP BY
+HAVING
+SELECT
+DISINCT
+ORDER BY
+LIMIT
+*/
+
+PRAGMA foreign_keys = ON;
+
