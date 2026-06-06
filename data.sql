@@ -76,6 +76,7 @@ INSERT INTO BOOK (id, title, category_id, author, price, published_date) VALUES 
 INSERT INTO BOOK (id, title, category_id, author, price, published_date) VALUES (8, '총, 균, 쇠', 7, '재레드 다이아몬드', 28000, '2005-12-19');
 INSERT INTO BOOK (id, title, category_id, author, price, published_date) VALUES (9, '데미안', 5, '헤르만 헤세', 10000, '1919-06-01');
 INSERT INTO BOOK (id, title, category_id, author, price, published_date) VALUES (10, '원씽 (The One Thing)', 10, '게리 켈러', 14000, '2013-08-30');
+INSERT INTO BOOK (id, title, category_id, author, price, published_date) VALUES (11, 'Java의 정석', 1, '남궁성', 32000, '2005-01-01');
 
 
 -- -----------------------------------------------------------------------------

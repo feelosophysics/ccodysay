@@ -12,6 +12,10 @@
 
 
 
+- .headers on
+- .mode column
+- .show
+- .tables
 
 
 
