@@ -70,17 +70,17 @@ def get_git_diff():
         print("[ERROR] Git diff 명령어를 실행할 수 없습니다.")
         sys.exit(1)
 
-def apply_safe_mode(diff_text):
+def apply_safe_mode(diff_text, max_lines=200):
     """
     안전 모드(safe-mode)가 켜져 있을 때, 민감한 정보를 마스킹하거나 길이를 제한합니다.
     """
-    print("[INFO] 안전 모드(safe-mode)가 활성화되었습니다. 민감 정보를 마스킹하고 길이를 제한합니다.")
+    print(f"[INFO] 안전 모드(safe-mode)가 활성화되었습니다. 민감 정보를 마스킹하고 길이를 {max_lines}줄로 제한합니다.")
     
-    # 1. 길이 제한 (최대 200줄로 제한)
+    # 1. 길이 제한 (조정 가능한 최대 줄 수 제한)
     lines = diff_text.split('\n')
-    if len(lines) > 200:
-        lines = lines[:200]
-        lines.append("\n... (안전 모드로 인해 200줄까지만 전송됩니다) ...")
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+        lines.append(f"\n... (안전 모드로 인해 {max_lines}줄까지만 전송됩니다) ...")
         diff_text = '\n'.join(lines)
     
     # 2. 정규표현식(Regex)을 이용한 마스킹
@@ -89,13 +89,26 @@ def apply_safe_mode(diff_text):
     diff_text = re.sub(email_pattern, '***@***.***', diff_text)
     
     # API Key 형태 마스킹 (예: sk-어쩌고저쩌고 20자 이상 문자열)
-    # 영어 대소문자와 숫자가 섞인 20자 이상의 문자열을 마스킹 대상이라고 간주할 수 있음
     apikey_pattern = r'sk-[a-zA-Z0-9]{20,}'
     diff_text = re.sub(apikey_pattern, 'sk-***MASKED***', diff_text)
     
     # Bearer 토큰 형태 마스킹
     bearer_pattern = r'Bearer\s+[a-zA-Z0-9\-\._~+/]+=*'
     diff_text = re.sub(bearer_pattern, 'Bearer ***MASKED***', diff_text)
+
+    # IPv4 주소 마스킹
+    ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+    diff_text = re.sub(ip_pattern, '***.***.***.***', diff_text)
+
+    # 비밀번호/비밀키 형태 마스킹 (예: password="...", client_secret="...")
+    secret_pattern = r'(?i)(password|secret|passwd|private_key)\s*[:=]\s*["\']([^"\']+)["\']'
+    def mask_secret(match):
+        key = match.group(1)
+        val = match.group(2)
+        masked_val = val[:2] + '*' * (len(val) - 2) if len(val) > 4 else '****'
+        delimiter = ':' if ':' in match.group(0) else '='
+        return f'{key}{delimiter}"{masked_val}"'
+    diff_text = re.sub(secret_pattern, mask_secret, diff_text)
 
     return diff_text
 
@@ -124,7 +137,7 @@ def load_convention():
 # AI API 통신 함수
 # =====================================================================
 
-def call_gemini_api(prompt, model, temperature, max_tokens):
+def call_gemini_api(prompt, model, temperature, max_tokens, thinking_level='unspecified'):
     """
     Google Gemini REST API를 호출하여 프롬프트에 대한 응답을 받습니다.
     """
@@ -149,17 +162,28 @@ def call_gemini_api(prompt, model, temperature, max_tokens):
     
     # 요청 본문 (Payload) 구성
     # Gemini API가 요구하는 형식에 맞게 딕셔너리를 만듭니다.
+    generation_config = {
+        "temperature": temperature,
+        "maxOutputTokens": max_tokens
+    }
+    
+    # gemini 모델 계열인 경우에만 thinkingConfig (thinkingBudget: 0)을 포함하여 생각 과정을 비활성화합니다.
+    # gemma 모델 계열은 thinkingBudget 필드를 허용하지 않아 400 Bad Request가 발생합니다.
+    # 대신 gemma 모델 계열이면서 thinking_level이 high인 경우 thinkingLevel 속성을 주입합니다.
+    if "gemini" in model.lower():
+        generation_config["thinkingConfig"] = {
+            "thinkingBudget": 0
+        }
+    elif "gemma" in model.lower() and thinking_level == "high":
+        generation_config["thinkingConfig"] = {
+            "thinkingLevel": "high"
+        }
+
     data = {
         "contents": [{
             "parts": [{"text": prompt}]
         }],
-        "generationConfig": {
-            "temperature": temperature,
-            "maxOutputTokens": max_tokens,
-            "thinkingConfig": {
-                "thinkingBudget": 0
-            }
-        }
+        "generationConfig": generation_config
     }
     
     # 딕셔너리를 JSON 문자열로 변환한 후 바이트(bytes)로 인코딩합니다.
@@ -180,10 +204,15 @@ def call_gemini_api(prompt, model, temperature, max_tokens):
             response_body = response.read().decode('utf-8')
             response_json = json.loads(response_body)
             
-            # Gemini 응답 JSON에서 텍스트 추출
-            # 응답 구조: candidates[0] -> content -> parts[0] -> text
+            # Gemini 응답 JSON에서 텍스트 추출 (생각 파트 제외)
             if 'candidates' in response_json and len(response_json['candidates']) > 0:
-                return response_json['candidates'][0]['content']['parts'][0]['text']
+                parts = response_json['candidates'][0]['content']['parts']
+                # 생각(thought: True) 파트를 제외한 실제 답변 텍스트 파트를 수집합니다.
+                actual_parts = [p['text'] for p in parts if not p.get('thought')]
+                if actual_parts:
+                    return "".join(actual_parts)
+                # 생각 중에 토큰 한계(max_tokens)로 잘려 실제 답변이 생성되지 못한 경우, 생각 파트를 임시로 반환합니다.
+                return parts[0]['text']
             else:
                 print("[ERROR] 예상치 못한 API 응답 구조입니다.")
                 return "API 호출 실패 (응답 텍스트 없음)"
@@ -257,7 +286,7 @@ def generate_commit_message(args, diff_text, status_text, convention):
     prompt += "\n위 규칙을 준수하여 결과물(커밋 메시지)만 출력해주세요. 다른 인사말이나 부연 설명은 하지 마세요."
 
     # API 호출
-    result = call_gemini_api(prompt, args.model, args.temperature, args.max_tokens)
+    result = call_gemini_api(prompt, args.model, args.temperature, args.max_tokens, thinking_level=args.thinking_level)
     
     print("[DONE] 커밋 메시지 생성 완료\n")
     print("--- Commit Message ---")
@@ -299,7 +328,7 @@ def generate_pr_draft(args, diff_text, status_text, convention):
     prompt += "\n위 규칙을 준수하여 결과물(PR 초안)만 출력해주세요. 마크다운 형식으로 작성해주세요. 다른 인사말이나 부연 설명은 하지 마세요."
 
     # API 호출
-    result = call_gemini_api(prompt, args.model, args.temperature, args.max_tokens)
+    result = call_gemini_api(prompt, args.model, args.temperature, args.max_tokens, thinking_level=args.thinking_level)
     
     print("[DONE] PR 초안 생성 완료\n")
     print("--- PR Draft ---")
@@ -327,10 +356,12 @@ def main():
     # 공통 옵션 추가 (API 파라미터 등)
     # 어느 명령어를 치든 뒤에 붙일 수 있는 옵션들입니다.
     # 미션 요구사항에 명시된 단일 대시 옵션(-model, -temperature, -max-tokens, -safe-mode)도 지원하도록 설정합니다.
-    parser.add_argument('--model', '-model', type=str, default='gemini-2.5-flash', help='사용할 AI 모델 이름 (기본값: gemini-2.5-flash)')
+    parser.add_argument('--model', '-model', type=str, default='gemma-4-31b-it', help='사용할 AI 모델 이름 (기본값: gemma-4-31b-it)')
     parser.add_argument('--temperature', '-temperature', type=float, default=0.7, help='AI 응답의 창의성 정도 (0.0 ~ 1.0, 기본값: 0.7)')
-    parser.add_argument('--max-tokens', '-max-tokens', type=int, default=500, help='생성할 최대 토큰 수 (기본값: 500)')
+    parser.add_argument('--max-tokens', '-max-tokens', type=int, default=2000, help='생성할 최대 토큰 수 (기본값: 2000)')
     parser.add_argument('--safe-mode', '-safe-mode', action='store_true', help='안전 모드 활성화 (민감 정보 마스킹 및 전송량 제한)')
+    parser.add_argument('--safe-lines', '-safe-lines', type=int, default=200, help='안전 모드 활성화 시 전송할 최대 diff 라인 수 (기본값: 200)')
+    parser.add_argument('--thinking-level', '-thinking-level', type=str, default='unspecified', choices=['high', 'unspecified'], help='Gemma 4 모델 사용 시 사고 수준 설정 (기본값: unspecified)')
     
     # 사용자가 터미널에 입력한 값을 파싱(해석)합니다.
     args = parser.parse_args()
@@ -352,7 +383,7 @@ def main():
     
     # 2. 안전 모드(safe-mode) 적용 (Bonus 5.3)
     if args.safe_mode:
-        diff_text = apply_safe_mode(diff_text)
+        diff_text = apply_safe_mode(diff_text, max_lines=args.safe_lines)
         
     # 3. 팀 컨벤션 로드 (Bonus 5.2)
     convention = load_convention()
