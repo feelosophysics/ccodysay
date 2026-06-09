@@ -22,7 +22,7 @@
 4. **보너스 과제 분석**: [bonus_queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/bonus_queries.sql)
    - JOIN vs Subquery 성능 비교 실험 및 FK 데이터 정합성 파괴 실험
    - 비즈니스 의사결정을 위한 미니 리포트 3선 쿼리 포함
-5. **실행 결과 보고**: [query_results.txt](file:///Users/f22losophysics1091/Desktop/glad/query/results/query_results.txt)
+5. **실행 결과 보고**: [query_results.txt](file:///Users/f22losophysics1091/Desktop/glad/query/query_results.txt)
    - 실제 SQLite를 구동하여 전체 쿼리를 일괄 수행해 추출한 터미널 데이터 출력 결과본
 
 ---
@@ -42,10 +42,10 @@ sqlite3 library.db < schema.sql
 sqlite3 library.db < data.sql
 
 # 4. 핵심 쿼리 일괄 실행 및 파일 추출 (기본 16개 쿼리)
-sqlite3 -header -column library.db < queries.sql > results/query_results.txt
+sqlite3 -header -column library.db < queries.sql > query_results.txt
 
 # 5. 보너스 쿼리 실행 결과 파일 뒤에 추가하기 (추가 분석 및 미니 리포트)
-sqlite3 -header -column library.db < bonus_queries.sql >> results/query_results.txt
+sqlite3 -header -column library.db < bonus_queries.sql >> query_results.txt
 ```
 
 ---
