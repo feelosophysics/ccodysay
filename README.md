@@ -9,21 +9,26 @@
 
 ## 📂 프로젝트 구조 및 결과물
 
-프로젝트의 각 파일은 다음과 같이 구성되어 있습니다:
+프로젝트의 디렉토리 구조 및 각 파일의 역할은 다음과 같습니다:
 
-1. **스키마 정의서**: [schema.sql](file:///Users/f22losophysics1091/Desktop/glad/query/schema.sql)
-   - `CATEGORY`, `MEMBER`, `BOOK`, `RENTAL` 테이블 설계
-   - PK/FK 선언, `ON DELETE CASCADE / RESTRICT` 무결성 검증, `CHECK` 제약조건 설정
-2. **샘플 데이터**: [data.sql](file:///Users/f22losophysics1091/Desktop/glad/query/data.sql)
-   - 테이블별 10개 행 이상의 유의미한 시나리오 데이터 삽입
-   - 대여 이력이 없는 휴면 회원(고길동) 추가
-3. **핵심 쿼리 및 성능 최적화**: [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql)
-   - 기본 조회, 조인, 집계, 서브쿼리, 데이터 수정/삭제, 인덱스 생성 포함 (총 16개 핵심 쿼리)
-4. **보너스 과제 분석**: [bonus_queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/bonus_queries.sql)
-   - JOIN vs Subquery 성능 비교 실험 및 FK 데이터 정합성 파괴 실험
-   - 비즈니스 의사결정을 위한 미니 리포트 3선 쿼리 포함
-5. **실행 결과 보고**: [query_results.txt](file:///Users/f22losophysics1091/Desktop/glad/query/query_results.txt)
-   - 실제 SQLite를 구동하여 전체 쿼리를 일괄 수행해 추출한 터미널 데이터 출력 결과본
+```text
+glad/
+├── query/
+│   ├── schema.sql         # 데이터베이스 스키마 정의서 (DDL)
+│   ├── data.sql           # 샘플 시나리오 데이터 적재 (DML)
+│   ├── queries.sql        # 핵심 쿼리 16선 & 인덱스 & 보너스 과제 분석 (DQL/DML)
+│   └── query_results.txt  # SQLite 구동을 통한 전체 쿼리 실행 결과 보고서
+└── study/
+    └── study_guide.md     # 데이터베이스 엔진 이론 학습서 (CS & AI 연계)
+```
+
+| 파일명 (File Link) | 유형 (Type) | 용도 및 핵심 역할 (Purpose & Key Role) | 주요 포함 내용 (Key Contents) |
+| :--- | :---: | :--- | :--- |
+| [schema.sql](file:///Users/f22losophysics1091/Desktop/glad/query/schema.sql) | DDL (스키마) | 데이터베이스 물리/논리 설계 정의 | 테이블 생성, PK/FK 제약 조건, CASCADE 처리, CHECK 제약조건 |
+| [data.sql](file:///Users/f22losophysics1091/Desktop/glad/query/data.sql) | DML (데이터) | 시나리오 기반 실무 데이터 구축 | 10행 이상의 테스트 데이터, 외래키 참조 무결성을 고려한 순차 적재 |
+| [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql) | SQL (통합) | 핵심 비즈니스 로직 구현 및 성능 튜닝 | 기본 조회/조인/집계/서브쿼리 16선, SQLite 설정, 보너스 분석 및 미니 리포트 3선 |
+| [query_results.txt](file:///Users/f22losophysics1091/Desktop/glad/query/query_results.txt) | TXT (결과) | 쿼리 일괄 실행에 따른 최종 터미널 출력본 | `.headers on`, `.mode column` 이 적용된 실제 쿼리 수행 이력 데이터 |
+| [study_guide.md](file:///Users/f22losophysics1091/Desktop/glad/study/study_guide.md) | MD (가이드) | RDBMS 심층 기술 이론 및 AI 피처 스토어 접점 가이드 | 트랜잭션(WAL/MVCC), B+Tree 인덱싱 아키텍처, 쿼리 처리 순서 |
 
 ---
 
@@ -41,11 +46,8 @@ sqlite3 library.db < schema.sql
 # 3. 샘플 데이터(DML) 삽입
 sqlite3 library.db < data.sql
 
-# 4. 핵심 쿼리 일괄 실행 및 파일 추출 (기본 16개 쿼리)
-sqlite3 -header -column library.db < queries.sql > query_results.txt
-
-# 5. 보너스 쿼리 실행 결과 파일 뒤에 추가하기 (추가 분석 및 미니 리포트)
-sqlite3 -header -column library.db < bonus_queries.sql >> query_results.txt
+# 4. 핵심 및 보너스 쿼리 일괄 실행 및 파일 추출 (.headers on, .mode column 자동 적용됨)
+sqlite3 library.db < queries.sql > query_results.txt
 ```
 
 ---
@@ -141,7 +143,7 @@ graph TD
 
 ## 🏆 보너스 과제 분석 요약
 
-상세 쿼리와 작동 설명은 [bonus_queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/bonus_queries.sql) 파일에서 확인할 수 있습니다.
+상세 쿼리와 작동 설명은 [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql) 파일의 최하단(`PART G: 보너스 과제 및 심층 분석`)에서 확인할 수 있습니다.
 
 1. **JOIN vs Subquery 성능 분석**: 특정 도서를 빌려 간 회원 목록 조회 시 JOIN 방식과 Subquery 방식의 동작 및 옵티마이저 실행 계획 최적화 차이 서술.
 2. **참조 무결성 파괴 실험**: 존재하지 않는 회원 ID(999)나 카테고리 ID(100)를 입력하여 `FOREIGN KEY constraint failed` 유도 및 정합성 방어 동작 입증.
