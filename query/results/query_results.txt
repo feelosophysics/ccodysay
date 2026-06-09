@@ -114,3 +114,30 @@ id  title           price  author
 id  name  email                   join_date 
 --  ----  ----------------------  ----------
 12  고길동   gildong_go@example.com  2025-11-20
+id  name  email               
+--  ----  --------------------
+6   강동원   dongwon@example.com 
+1   이영희   younghee@example.com
+id  name  email               
+--  ----  --------------------
+1   이영희   younghee@example.com
+6   강동원   dongwon@example.com 
+도서명       대여 횟수
+--------  -----
+사피엔스      2    
+정의란 무엇인가  2    
+코스모스      2    
+대여 상태     비율   
+--------  -----
+OVERDUE   13.3%
+RENTED    33.3%
+RETURNED  53.3%
+카테고리명  누적 대여 수
+-----  -------
+컴퓨터과학  4      
+역사     3      
+문학/소설  2      
+인문/철학  2      
+과학/수학  2      
+자기계발   1      
+경제/경영  1      
