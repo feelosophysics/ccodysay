@@ -68,42 +68,30 @@ WHERE id IN (
 
 -- =============================================================================
 -- [보너스 5.3] 미니 리포트 만들기 (핵심 지표 3개 정의 및 SQL)
--- 요구사항: "이 DB로 뽑을 수 있는 핵심 지표 3개"를 정의하고, 각각을 구하는 SQL 정리
 -- =============================================================================
 
--- [지표 1] 월별 도서 대여 건수 추이 (Monthly Rental Trends)
--- 설명: 월별로 대여가 얼마나 활발히 일어났는지 추이를 분석하여, 도서관 활성화 수준을 모니터링합니다.
---       (샘플 데이터 시점인 2026년 4월과 5월의 대여량을 비교할 수 있습니다.)
-SELECT 
-    strftime('%Y-%m', rental_date) AS rental_month,
-    COUNT(*) AS total_rentals
-FROM RENTAL
-GROUP BY rental_month
-ORDER BY rental_month ASC;
-
--- [지표 2] 가장 인기 있는 도서 TOP 3 (Most Popular Books TOP 3)
+-- [지표 1] 도서 대여 선호도 (가장 인기 있는 도서 TOP 3)
 -- 설명: 누적 대여 횟수가 가장 높은 베스트셀러 도서 3권을 선정하여 추가 구매 및 추천 서가 배치에 활용합니다.
-SELECT 
-    b.id AS book_id,
-    b.title AS book_title,
-    COUNT(r.id) AS rental_count
-FROM BOOK b
-INNER JOIN RENTAL r ON b.id = r.book_id
-GROUP BY b.id, b.title
-ORDER BY rental_count DESC, b.title ASC
+SELECT b.title AS "도서명", COUNT(r.id) as "대여 횟수" 
+FROM BOOK b 
+JOIN RENTAL r ON b.id = r.book_id 
+GROUP BY b.id 
+ORDER BY "대여 횟수" DESC 
 LIMIT 3;
 
--- [지표 3] 현재 도서를 연체 중인 회원 및 연체 권수 목록 (Members with Overdue Books)
--- 설명: 현재 도서 연체 상태('OVERDUE')인 도서가 있는 회원과 그 연체 권수를 추출하여, 
---       연체 알림 문자 발송 및 미반납 도서 회수 처리에 활용합니다.
+-- [지표 2] 전체 도서 회전 상태 및 연체율
+-- 설명: 전체 대여 건 중 반납 완료, 정상 대여 중, 연체 상태의 비율을 계산하여 연체 관리 정책 수립에 활용합니다.
 SELECT 
-    m.id AS member_id,
-    m.name AS member_name,
-    m.email AS member_email,
-    COUNT(r.id) AS overdue_book_count
-FROM MEMBER m
-INNER JOIN RENTAL r ON m.id = r.member_id
-WHERE r.status = 'OVERDUE'
-GROUP BY m.id, m.name, m.email
-ORDER BY overdue_book_count DESC, m.name ASC;
+    status AS "대여 상태", 
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM RENTAL), 1) || '%' as "비율" 
+FROM RENTAL 
+GROUP BY status;
 
+-- [지표 3] 카테고리(장르)별 대여 점유율
+-- 설명: 카테고리별 누적 대여 건수를 분석하여 도서관 방문자들의 장르 선호도를 파악하고 서가 배치 및 마케팅에 활용합니다.
+SELECT c.name as "카테고리명", COUNT(r.id) as "누적 대여 수" 
+FROM CATEGORY c 
+JOIN BOOK b ON c.id = b.category_id 
+JOIN RENTAL r ON b.id = r.book_id 
+GROUP BY c.id 
+ORDER BY "누적 대여 수" DESC;

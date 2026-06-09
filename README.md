@@ -177,42 +177,43 @@ SQL 엔진은 쿼리가 작성된 순서가 아니라, 내부의 논리적 실�
 ### 📊 5.3 비즈니스 의사결정을 위한 미니 리포트 (핵심 지표 3선)
 보너스 5.3 요구사항에 따라 이 데이터베이스 시스템에서 추출해낼 수 있는 핵심 경영 지표 3개를 정의하고 SQL로 도출했습니다.
 
-#### 📈 지표 1. 월별 도서 대여 건수 추이 (Monthly Rental Trends)
-* **목적**: 서비스 활성화 추이 분석 및 시즌별 대여량 모니터링
+#### 📈 지표 1. 도서 대여 선호도 (가장 인기 있는 도서 TOP 3)
+* **목적**: 한정된 도서 구입 예산을 어느 책에 집중할지 결정하기 위한 핵심 지표입니다.
 * **SQL**:
   ```sql
-  SELECT strftime('%Y-%m', rental_date) AS rental_month, COUNT(*) AS total_rentals
-  FROM RENTAL
-  GROUP BY rental_month
-  ORDER BY rental_month ASC;
-  ```
-* **인사이트**: 샘플 데이터상 2026년 4월 대여 건수(6건) 대비 5월 대여 건수(9건)가 약 50% 급성장했음을 확인하여, 도서 유통 및 프로모션 성과를 시각적으로 측정할 수 있습니다.
-
-#### 🔥 지표 2. 가장 인기 있는 도서 TOP 3 (Most Popular Books TOP 3)
-* **목적**: 베스트셀러 도서 식별을 통한 추가 수량 확보 및 추천 코너 기획
-* **SQL**:
-  ```sql
-  SELECT b.id AS book_id, b.title AS book_title, COUNT(r.id) AS rental_count
-  FROM BOOK b
-  INNER JOIN RENTAL r ON b.id = r.book_id
-  GROUP BY b.id, b.title
-  ORDER BY rental_count DESC, b.title ASC
+  SELECT b.title AS "도서명", COUNT(r.id) as "대여 횟수" 
+  FROM BOOK b 
+  JOIN RENTAL r ON b.id = r.book_id 
+  GROUP BY b.id 
+  ORDER BY "대여 횟수" DESC 
   LIMIT 3;
   ```
-* **인사이트**: `밑바닥부터 시작하는 딥러닝`, `사피엔스`, `정의란 무엇인가`가 각각 누적 대여 2회로 공동 1위를 차지했습니다. 이 도서들의 추가 복본을 확보하여 회원 대기 시간을 최소화해야 한다는 의사결정이 가능합니다.
+* **인사이트**: `사피엔스`, `정의란 무엇인가`, `코스모스`가 각각 누적 대여 2회로 공동 1위를 차지했습니다. 역사, 인문학, 과학 등 폭넓은 분야의 명저들이 고르게 인기를 끌고 있으며, 이 베스트셀러 도서들을 위주로 우선적인 장서 확충이 필요합니다.
 
-#### 🚨 지표 3. 현재 도서를 연체 중인 회원 및 연체 권수 목록 (Members with Overdue Books)
-* **목적**: 장기 연체자 대상의 안내 서비스 전송 및 연체 도서 회수율 제고
+#### 🔥 지표 2. 전체 도서 회전 상태 및 연체율
+* **목적**: 도서관 자산(책)이 정상 유통되고 회수되는 비율을 파악합니다. 연체율이 너무 높으면 페널티 정책 조정을 검토해야 합니다.
 * **SQL**:
   ```sql
-  SELECT m.id AS member_id, m.name AS member_name, m.email AS member_email, COUNT(r.id) AS overdue_book_count
-  FROM MEMBER m
-  INNER JOIN RENTAL r ON m.id = r.member_id
-  WHERE r.status = 'OVERDUE'
-  GROUP BY m.id, m.name, m.email
-  ORDER BY overdue_book_count DESC, m.name ASC;
+  SELECT 
+      status AS "대여 상태", 
+      ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM RENTAL), 1) || '%' as "비율" 
+  FROM RENTAL 
+  GROUP BY status;
   ```
-* **인사이트**: 현재 회원 `강동원`(ID=6)과 `김철수`(ID=2)가 각각 1권씩 도서를 반납하지 않고 연체(`OVERDUE`) 중임을 식별했습니다. 해당 회원 정보(이메일 등)를 바탕으로 반납 유도 SMS/이메일 발송 자동화 시스템과 연결할 수 있습니다.
+* **인사이트**: 전체 대여 건 중 반납 완료(`RETURNED`)가 53.3%, 정상 대여 중(`RENTED`)이 33.3%, 연체 상태(`OVERDUE`)가 13.3%입니다. 연체 상태의 비중이 무시할 수 없는 수준이므로 연체 알림 자동 문자 서비스 도입 등 회수 제고 방안이 필요합니다.
+
+#### 🚨 지표 3. 카테고리(장르)별 대여 점유율
+* **목적**: 도서관 방문객들이 가장 선호하는 주제를 파악해 도서 큐레이션 및 마케팅에 활용합니다.
+* **SQL**:
+  ```sql
+  SELECT c.name as "카테고리명", COUNT(r.id) as "누적 대여 수" 
+  FROM CATEGORY c 
+  JOIN BOOK b ON c.id = b.category_id 
+  JOIN RENTAL r ON b.id = r.book_id 
+  GROUP BY c.id 
+  ORDER BY "누적 대여 수" DESC;
+  ```
+* **인사이트**: `컴퓨터과학`(4회)과 `역사`(3회) 카테고리가 최상위권 대여수를 차지하고 있습니다. 이 서비스의 주요 이용층이 기술 분야 종사자 및 인문 역사 애호가일 확률이 높으므로, 관련 서적의 라인업을 보강하고 추천 서가를 기획하는 마케팅 전략이 효과적입니다.
 
 ---
 
