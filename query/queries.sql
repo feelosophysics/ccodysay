@@ -42,6 +42,10 @@ PRAGMA foreign_keys = ON;
 --   1. FROM MEMBER: 회원 테이블 전체 행을 읽어들임.
 --   2. SELECT: 지정한 id, name, email, join_date 컬럼 데이터만 투영(Projection).
 --   3. ORDER BY join_date ASC: 날짜 컬럼을 오름차순(ASC)으로 정렬해 최종 반환.
+.print ""
+.print "=================================================="
+.print "[Query 1] 전체 회원 목록 조회 (가입일이 오래된 순)"
+.print "=================================================="
 SELECT id, name, email, join_date
 FROM MEMBER
 ORDER BY join_date ASC;
@@ -56,6 +60,10 @@ ORDER BY join_date ASC;
 --   2. WHERE price >= 20000: 각 행을 순회하며 price 컬럼 값이 20000 미만인 행을 버림(수평 필터링).
 --   3. SELECT id, title, price: 필터링을 통과한 행 중 필요한 컬럼만 추출.
 --   4. ORDER BY price DESC: 가격 기준 내림차순(DESC, High to Low) 정렬.
+.print ""
+.print "=================================================="
+.print "[Query 2] 20,000원 이상인 고가 도서 목록 조회 (가격 내림차순 정렬)"
+.print "=================================================="
 SELECT id, title, author, price
 FROM BOOK
 WHERE price >= 20000
@@ -71,6 +79,10 @@ ORDER BY price DESC;
 --      문자열 끝부분 패턴 매칭을 수행합니다. (%는 0개 이상의 임의의 문자열을 뜻함)
 --   2. ORDER BY join_date DESC: 가장 최근에 가입한 사람(날짜가 큰 사람)부터 정렬합니다.
 --   3. LIMIT 5: 정렬된 결과 셋에서 위에서부터 딱 5개의 레코드만 남기고 나머지는 잘라냅니다.
+.print ""
+.print "=================================================="
+.print "[Query 3] 이메일 도메인이 '@example.com'인 회원 중 최근에 가입한 5명 조회"
+.print "=================================================="
 SELECT id, name, email, join_date
 FROM MEMBER
 WHERE email LIKE '%@example.com'
@@ -82,6 +94,10 @@ LIMIT 5;
 -- [Query 4] 도서 카테고리 목록 조회 (이름 사전순)
 -- -----------------------------------------------------------------------------
 -- 설명: 등록되어 있는 모든 카테고리 이름을 가나다(사전) 순으로 조회합니다.
+.print ""
+.print "=================================================="
+.print "[Query 4] 도서 카테고리 목록 조회 (이름 사전순)"
+.print "=================================================="
 SELECT id, name
 FROM CATEGORY
 ORDER BY name ASC;
@@ -107,6 +123,10 @@ ORDER BY name ASC;
 --   3. INNER JOIN BOOK b ON r.book_id = b.id:
 --      결합된 가상 테이블에 다시 book_id를 기준으로 BOOK 테이블의 정보를 가로로 덧붙임.
 --   4. WHERE r.status IN ('RENTED', 'OVERDUE'): 대여 중이거나 연체 중인 내역만 필터링.
+.print ""
+.print "=================================================="
+.print "[Query 5] 현재 대여 중 또는 연체 중인 도서와 대여한 회원 정보 결합 조회 (INNER JOIN)"
+.print "=================================================="
 SELECT 
     r.id AS rental_id,
     m.name AS member_name,
@@ -127,6 +147,10 @@ ORDER BY r.rental_date ASC;
 -- 작동 원리:
 --   - SQL의 'ALIAS(별칭)' 사용: RENTAL을 `r`, BOOK을 `b`로 축약하여 쿼리 가독성을 높입니다.
 --   - WHERE r.member_id = 1 조건을 인덱스 검색으로 빠르게 타격하여 해당 회원의 레코드만 조인 대상으로 삼습니다.
+.print ""
+.print "=================================================="
+.print "[Query 6] 특정 회원(이영희, ID=1)의 전체 대여 이력 조회 (INNER JOIN)"
+.print "=================================================="
 SELECT 
     r.id AS rental_id,
     b.title AS book_title,
@@ -151,6 +175,10 @@ ORDER BY r.rental_date DESC;
 -- ⚠️ COUNT(r.id)의 디테일:
 --   - COUNT(*)은 NULL을 포함한 행 개수를 세므로 대여 0회인 책도 1로 카운트됩니다.
 --   - COUNT(r.id)는 r.id 컬럼 값이 NULL이 아닌 행의 개수만 세기 때문에 0회 대여된 책이 정확하게 '0'으로 집계됩니다!
+.print ""
+.print "=================================================="
+.print "[Query 7] 모든 책 목록과 그 책의 누적 대여 횟수 조회 (LEFT JOIN)"
+.print "=================================================="
 SELECT 
     b.id AS book_id,
     b.title AS book_title,
@@ -169,6 +197,10 @@ ORDER BY total_rentals DESC, b.title ASC;
 --   - MEMBER(왼쪽)의 10명 데이터를 전부 살려두고, RENTAL 테이블 중 상태가 'RENTED'나 'OVERDUE'인 건들만 연결합니다.
 --   - ON 절의 다중 조건: r.member_id = m.id 뒤에 `AND r.status IN ('RENTED', 'OVERDUE')` 조건을 추가하여
 --     반납 완료된 과거 이력은 조인 연결 대상에서 제외하고, 오직 '현재 대여 중'인 관계만 시각화합니다.
+.print ""
+.print "=================================================="
+.print "[Query 8] 모든 회원 목록과 그들의 현재 대여 도서 정보 조회 (LEFT JOIN)"
+.print "=================================================="
 SELECT 
     m.id AS member_id,
     m.name AS member_name,
@@ -196,6 +228,10 @@ ORDER BY m.id ASC;
 --   3. 집계 함수 계산:
 --      - COUNT(b.id): 해당 상자에 속한 도서의 개수 카운트.
 --      - AVG(b.price): 해당 상자에 속한 도서들의 가격 산술평균 계산. (ROUND 함수로 소수점 첫째 자리 반올림)
+.print ""
+.print "=================================================="
+.print "[Query 9] 카테고리별 도서 수 및 평균 도서 가격 (GROUP BY + COUNT + AVG)"
+.print "=================================================="
 SELECT 
     c.name AS category_name,
     COUNT(b.id) AS book_count,
@@ -213,6 +249,10 @@ ORDER BY book_count DESC;
 -- 작동 원리:
 --   - RENTAL과 BOOK을 조인하여 빌려간 책들의 가격 정보를 가져옵니다.
 --   - 회원(m.id) 단위로 그룹화하여 카운팅과 합계 연산을 동시 수행합니다.
+.print ""
+.print "=================================================="
+.print "[Query 10] 회원별 누적 대여 횟수 및 총 연체료 가치 합산 (GROUP BY + COUNT + SUM)"
+.print "=================================================="
 SELECT 
     m.id AS member_id,
     m.name AS member_name,
@@ -230,6 +270,10 @@ ORDER BY total_rental_count DESC;
 -- -----------------------------------------------------------------------------
 -- 설명: 도서관 시스템 전체에서 반납 완료(RETURNED), 대여 중(RENTED), 연체(OVERDUE)인 대여 건의 누적 수치를 집계합니다.
 --       현재 관리 중인 도서 유통 상태의 거시적 요약 지표를 제공합니다.
+.print ""
+.print "=================================================="
+.print "[Query 11] 대여 상태별 대여 건수 집계 및 요약 (GROUP BY + COUNT)"
+.print "=================================================="
 SELECT 
     status,
     COUNT(*) AS count
@@ -252,6 +296,10 @@ ORDER BY count DESC;
 --   - [서브쿼리 부분] (SELECT AVG(price) FROM BOOK) 이 먼저 독립 실행되어 단 하나의 스칼라 값(예: 21650.0)을 리턴합니다.
 --   - [메인 쿼리 부분] WHERE price > 21650.0 을 수행하여 조건에 만족하는 책만 걸러냅니다.
 --   - 하드코딩 방식(평균 가격을 사람이 계산해 21650을 직접 적어 넣는 방식)과 달리, 신규 도서가 추가되어 평균 가격이 변동될 때마다 동적으로 실시간 반영되는 극도의 유연성을 가집니다.
+.print ""
+.print "=================================================="
+.print "[Query 12] 전체 도서 평균 가격보다 비싼 명품 도서 목록 (비교 서브쿼리)"
+.print "=================================================="
 SELECT id, title, price, author
 FROM BOOK
 WHERE price > (SELECT AVG(price) FROM BOOK)
@@ -267,6 +315,10 @@ ORDER BY price DESC;
 --   - RENTAL 테이블을 뒤져서 현재 돌고 있는 회원(m.id)과 같은 member_id가 존재하는지 확인합니다.
 --   - 단 한 건도 매칭되지 않는(EXISTS의 결과가 거짓인) 회원 정보만 최종 리턴합니다.
 --   - LEFT JOIN 후 NULL을 찾는 방식보다, 엔진 레벨에서 얼리 엑싯(Early Exit - 매칭되는 게 한 개라도 나오면 탐색을 즉시 멈춤)이 작동하여 성능 최적화에 탁월합니다.
+.print ""
+.print "=================================================="
+.print "[Query 13] 도서를 단 한 번도 대여한 적 없는 휴면 회원 목록 (NOT EXISTS 서브쿼리)"
+.print "=================================================="
 SELECT id, name, email, join_date
 FROM MEMBER m
 WHERE NOT EXISTS (
@@ -292,6 +344,10 @@ WHERE NOT EXISTS (
 --   - julianday('2026-05-24') - julianday(rental_date) 연산은 두 날짜 사이의 일수 차이를 계산합니다.
 --     (오늘 시점인 '2026-05-24'를 가상 현재일로 적용)
 --   - 차이가 14일을 초과하고 반납일이 기록되지 않은 행만 찾아 상태를 변경합니다.
+.print ""
+.print "=================================================="
+.print "[Query 14] 특정 대여 기간이 지난 대여 건을 'OVERDUE'(연체) 상태로 일괄 업데이트"
+.print "=================================================="
 UPDATE RENTAL
 SET status = 'OVERDUE'
 WHERE return_date IS NULL 
@@ -313,6 +369,10 @@ WHERE return_date IS NULL
 --      `ON DELETE CASCADE` 규칙 덕분에 데이터 무결성을 위해 동반 삭제되었음을 확인할 수 있습니다!
 -- -----------------------------------------------------------------------------
 
+.print ""
+.print "=================================================="
+.print "[Query 15] 회원 정보 삭제를 통한 CASCADE 작동 테스트 (임시 회원 11번 추가 후 삭제)"
+.print "=================================================="
 -- 1. 테스트용 임시 회원 가입
 INSERT INTO MEMBER (id, name, email, phone) 
 VALUES (11, '홍길동', 'gildong@example.com', '010-9999-9999');
@@ -351,6 +411,10 @@ WHERE id = 11;
 --   - 이 인덱스를 태우면 특정 상태를 찾기 위해 **O(log N)** 수준의 디스크 탐색만 수행하여
 --     100만 건 중에서도 단 몇 번의 노드 이동으로 원하는 데이터를 즉시 찾아냅니다 (Index Range Scan).
 -- -----------------------------------------------------------------------------
+.print ""
+.print "=================================================="
+.print "[Query 16] RENTAL 테이블의 status 컬럼에 인덱스 생성"
+.print "=================================================="
 CREATE INDEX idx_rental_status ON RENTAL(status);
 
 
@@ -368,6 +432,10 @@ CREATE INDEX idx_rental_status ON RENTAL(status);
 -- 1. JOIN을 활용한 방식 (INNER JOIN)
 -- 옵티마이저 관점: JOIN은 일반적으로 데이터베이스 엔진이 가장 최적화하기 쉬운 표준적인 연결 방식입니다.
 -- 인덱스가 잘 타있는 경우, Nested Loop Join이나 Hash Join 등을 통해 매우 빠르게 두 집합을 결합합니다.
+.print ""
+.print "=================================================="
+.print "[보너스 5.1 - 1] JOIN을 활용한 방식 (INNER JOIN)"
+.print "=================================================="
 SELECT DISTINCT m.id, m.name, m.email
 FROM MEMBER m
 INNER JOIN RENTAL r ON m.id = r.member_id
@@ -379,6 +447,10 @@ WHERE b.title = '사피엔스';
 -- 그 결과(member_id 집합)를 바깥 쿼리(MEMBER)에 필터 조건으로 전달합니다.
 -- 최신 RDBMS 옵티마이저는 이 서브쿼리 형태를 내부적으로 JOIN 방식(Semi-Join)으로 
 -- 풀어서(Unnesting) 실행 계획을 최적화하는 경우가 많습니다.
+.print ""
+.print "=================================================="
+.print "[보너스 5.1 - 2] 서브쿼리를 활용한 방식 (IN 연산자)"
+.print "=================================================="
 SELECT id, name, email
 FROM MEMBER
 WHERE id IN (
@@ -427,6 +499,10 @@ WHERE id IN (
 
 -- [지표 1] 도서 대여 선호도 (가장 인기 있는 도서 TOP 3)
 -- 설명: 누적 대여 횟수가 가장 높은 베스트셀러 도서 3권을 선정하여 추가 구매 및 추천 서가 배치에 활용합니다.
+.print ""
+.print "=================================================="
+.print "[보너스 5.3 - 지표 1] 도서 대여 선호도 (가장 인기 있는 도서 TOP 3)"
+.print "=================================================="
 SELECT b.title AS "도서명", COUNT(r.id) as "대여 횟수" 
 FROM BOOK b 
 JOIN RENTAL r ON b.id = r.book_id 
@@ -436,6 +512,10 @@ LIMIT 3;
 
 -- [지표 2] 전체 도서 회전 상태 및 연체율
 -- 설명: 전체 대여 건 중 반납 완료, 정상 대여 중, 연체 상태의 비율을 계산하여 연체 관리 정책 수립에 활용합니다.
+.print ""
+.print "=================================================="
+.print "[보너스 5.3 - 지표 2] 전체 도서 회전 상태 및 연체율"
+.print "=================================================="
 SELECT 
     status AS "대여 상태", 
     ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM RENTAL), 1) || '%' as "비율" 
@@ -444,6 +524,10 @@ GROUP BY status;
 
 -- [지표 3] 카테고리(장르)별 대여 점유율
 -- 설명: 카테고리별 누적 대여 건수를 분석하여 도서관 방문자들의 장르 선호도를 파악하고 서가 배치 및 마케팅에 활용합니다.
+.print ""
+.print "=================================================="
+.print "[보너스 5.3 - 지표 3] 카테고리(장르)별 대여 점유율"
+.print "=================================================="
 SELECT c.name as "카테고리명", COUNT(r.id) as "누적 대여 수" 
 FROM CATEGORY c 
 JOIN BOOK b ON c.id = b.category_id 
