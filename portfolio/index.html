@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio - feelosophysics</title>
+  <meta name="description" content="Backend Developer Portfolio">
+  <!-- 폰트 추가: 구글 폰트 (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <nav class="nav container">
+      <a href="#" class="nav__logo">Dev.feel</a>
+      
+      <div class="nav__menu" id="nav-menu">
+        <ul class="nav__list">
+          <li class="nav__item"><a href="#home" class="nav__link">Home</a></li>
+          <li class="nav__item"><a href="#about" class="nav__link">About</a></li>
+          <li class="nav__item"><a href="#skills" class="nav__link">Skills</a></li>
+          <li class="nav__item"><a href="#projects" class="nav__link">Projects</a></li>
+          <li class="nav__item"><a href="#contact" class="nav__link">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="nav__actions">
+        <!-- 다크 모드 토글 버튼 -->
+        <button id="theme-toggle" class="theme-btn" aria-label="Toggle Dark Mode">
+          <span class="icon">🌙</span>
+        </button>
+        <!-- 햄버거 메뉴 버튼 (모바일) -->
+        <div class="nav__toggle" id="nav-toggle">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="home" class="hero section">
+      <div class="container hero__container">
+        <div class="hero__content">
+          <h1 class="hero__title">
+            <span class="typing-text" id="typing-text"></span><span class="cursor">|</span>
+          </h1>
+          <p class="hero__subtitle">백엔드 생태계를 만들어가는 개발자입니다.</p>
+          <div class="hero__buttons">
+            <a href="#projects" class="btn btn--primary">View Projects</a>
+            <a href="#contact" class="btn btn--outline">Contact Me</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about section">
+      <div class="container">
+        <h2 class="section__title">About Me</h2>
+        <div class="about__container">
+          <div class="about__img-wrapper">
+            <img src="images/profile.jpg" alt="feelosophysics 프로필 이미지" class="about__img" id="profile-img">
+          </div>
+          <div class="about__info">
+            <p>안녕하세요! 복잡한 문제를 단순하게 풀어나가는 것을 좋아하는 백엔드 개발자 지망생입니다.</p>
+            <p>데이터베이스 최적화, 안정적인 서버 아키텍처 구축에 관심이 많으며, 사용자가 체감할 수 있는 성능 개선을 이루어낼 때 가장 큰 보람을 느낍니다.</p>
+            <p>새로운 기술을 배우는 데 주저함이 없으며, 팀원들과의 원활한 소통을 중요하게 생각합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills section">
+      <div class="container">
+        <h2 class="section__title">Skills</h2>
+        <div class="skills__container">
+          <article class="skills__card">
+            <h3>Frontend</h3>
+            <ul>
+              <li>HTML5 / CSS3</li>
+              <li>JavaScript (ES6+)</li>
+              <li>React (예정)</li>
+            </ul>
+          </article>
+          <article class="skills__card">
+            <h3>Backend</h3>
+            <ul>
+              <li>Python / Java</li>
+              <li>Spring Boot</li>
+              <li>Node.js</li>
+            </ul>
+          </article>
+          <article class="skills__card">
+            <h3>Database & Tools</h3>
+            <ul>
+              <li>MySQL / PostgreSQL</li>
+              <li>Git / GitHub</li>
+              <li>Docker</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="projects section">
+      <div class="container">
+        <h2 class="section__title">Projects</h2>
+        
+        <!-- 보너스: 언어별 필터링 버튼 -->
+        <div class="projects__filter">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="JavaScript">JavaScript</button>
+          <button class="filter-btn" data-filter="Python">Python</button>
+          <button class="filter-btn" data-filter="Java">Java</button>
+        </div>
+
+        <!-- 프로젝트 리스트 컨테이너 -->
+        <div class="projects__container" id="projects-container">
+          <!-- JS로 동적 렌더링 될 영역 -->
+          <div class="projects__loading">프로젝트를 불러오는 중입니다...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact section">
+      <div class="container">
+        <h2 class="section__title">Contact</h2>
+        <div class="contact__container">
+          <!-- 보너스: Formspree 연동 (action URL은 실제 ID로 변경해야 함) -->
+          <!-- 데모를 위해 기본 동작은 JS에서 e.preventDefault()로 막을 수 있으나, Formspree 테스트를 위해 주석 참고 -->
+          <form id="contact-form" class="contact__form" action="https://formspree.io/f/my_form_id_here" method="POST">
+            <div class="form__group">
+              <label for="name" class="form__label">Name</label>
+              <input type="text" id="name" name="name" class="form__input" placeholder="이름을 입력하세요">
+              <span class="form__error" id="name-error">이름은 필수 항목입니다.</span>
+            </div>
+            
+            <div class="form__group">
+              <label for="email" class="form__label">Email</label>
+              <input type="email" id="email" name="email" class="form__input" placeholder="이메일을 입력하세요">
+              <span class="form__error" id="email-error">유효한 이메일을 입력해주세요.</span>
+            </div>
+            
+            <div class="form__group">
+              <label for="message" class="form__label">Message</label>
+              <textarea id="message" name="message" class="form__input" rows="5" placeholder="메시지를 남겨주세요"></textarea>
+              <span class="form__error" id="message-error">메시지는 필수 항목입니다.</span>
+            </div>
+            
+            <button type="submit" class="btn btn--primary form__submit">Send Message</button>
+            <div id="form-success" class="form__success">메시지가 성공적으로 전송되었습니다!</div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__container">
+      <p class="footer__copy">&copy; 2026 feelosophysics. All rights reserved.</p>
+      <div class="footer__socials">
+        <a href="https://github.com/feelosophysics" target="_blank" class="footer__social-link" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll Top Button -->
+  <a href="#" class="scroll-top" id="scroll-top" aria-label="Scroll to top">
+    ↑
+  </a>
+</body>
+</html>
