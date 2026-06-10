@@ -139,28 +139,28 @@ graph TD
 
 ## 🔍 핵심 SQL 쿼리 및 분석 요약
 
-과제 수행에 필요한 15+1개 쿼리는 [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql) 파일에 상세한 주석과 함께 작성되어 있습니다.
+과제 수행에 필요한 15+1개 쿼리는 [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql) 파일에 가장 단순하고 직관적인 형태로 작성되어 있습니다.
 
 ### 쿼리 및 분석 범위 요약
-- **기본 조회 (Query 1 ~ 4)**: 회원 정렬, 가격대 필터링, 이메일 패턴 매칭 및 페이징.
-- **테이블 조인 (Query 5 ~ 8)**: 미반납 현황(3자 Inner Join), 특정 회원 대여 이력, 전체 도서별 누적 대여 횟수 집계(Left Outer Join).
-- **집계 및 그룹화 (Query 9 ~ 11)**: 카테고리별 도서 수 및 평균 가격, 회원별 총 대여 횟수 및 도서 가치 합산, 대여 상태 분포.
-- **서브쿼리 (Query 12 ~ 13)**: 평균 도서 가격 상위 도서 필터링, 대여 이력 없는 휴면 회원 추출.
-- **데이터 조작 (Query 14 ~ 15)**: 날짜 연산을 이용한 연체(OVERDUE) 상태 일괄 변경, `ON DELETE CASCADE` 연쇄 삭제 검증.
-- **성능 최적화 (Query 16)**: 미반납 상태 조회 성능 고도화를 위한 B-Tree 인덱스 생성 (`CREATE INDEX idx_rental_status ON RENTAL(status)`).
+- **기본 조회 (Query 1 ~ 4)**: 전체 회원 목록 조회(가입일 순), 고가 도서 필터링, 이메일 패턴 매칭 및 페이징, 카테고리 목록 조회.
+- **테이블 조인 (Query 5 ~ 8)**: 대여 기록과 회원 정보 결합(Inner Join), 도서와 카테고리 결합(Inner Join), 도서별 대여일 조회(Left Join), 회원별 대여 상태 조회(Left Join).
+- **집계 및 그룹화 (Query 9 ~ 11)**: 카테고리별 도서 평균 가격, 회원별 누적 대여 횟수, 카테고리별 도서 총 가격 합산.
+- **서브쿼리 (Query 12 ~ 13)**: 평균 도서 가격 상위 도서 필터링, 대여 이력이 없는 회원 추출.
+- **데이터 조작 (Query 14 ~ 15)**: 특정 대여 기록을 반납 완료로 업데이트, 특정 회원 삭제를 통한 외래키 CASCADE 검증.
+- **성능 최적화 (Query 16)**: 회원별 대여 기록 조회 최적화를 위한 인덱스 생성 (`CREATE INDEX idx_rental_member ON RENTAL(member_id)`).
 
 ---
 
 ## 🏆 보너스 과제 분석 요약
 
-상세 쿼리와 작동 설명은 [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql) 파일의 최하단(`PART G: 보너스 과제 및 심층 분석`)에서 확인할 수 있습니다.
+상세 쿼리와 작동 설명은 [queries.sql](file:///Users/f22losophysics1091/Desktop/glad/query/queries.sql) 파일의 최하단(`PART G: 보너스 과제`)에서 확인할 수 있습니다.
 
-1. **JOIN vs Subquery 성능 분석**: 특정 도서를 빌려 간 회원 목록 조회 시 JOIN 방식과 Subquery 방식의 동작 및 옵티마이저 실행 계획 최적화 차이 서술.
-2. **참조 무결성 파괴 실험**: 존재하지 않는 회원 ID(999)나 카테고리 ID(100)를 입력하여 `FOREIGN KEY constraint failed` 유도 및 정합성 방어 동작 입증.
+1. **JOIN vs Subquery 비교**: '이영희' 회원의 대여 기록 조회 시 JOIN 방식과 Subquery 방식의 문법 구조 및 결과 비교.
+2. **참조 무결성 파괴 실험**: 존재하지 않는 카테고리 ID(999)로 도서 등록 시도 시 외래키 제약조건 위배 에러(`FOREIGN KEY constraint failed`) 유도.
 3. **비즈니스 의사결정 미니 리포트**: 
-   - 도서 대여 선호도 (가장 인기 있는 도서 TOP 3)
-   - 전체 도서 회전 상태 및 연체율
-   - 카테고리(장르)별 대여 점유율
+   - 지표 1: 가장 대여가 많이 된 도서 TOP 3 (도서 ID 및 횟수)
+   - 지표 2: 카테고리별 등록된 도서 개수
+   - 지표 3: 현재 대여 중인 도서 건수
 
 ---
 
