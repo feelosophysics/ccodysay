@@ -110,7 +110,11 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    load_dotenv()
+    import os
+    if os.path.exists('gitgen/.env'):
+        load_dotenv('gitgen/.env')
+    else:
+        load_dotenv()
     convention = load_convention()
     
     # 2. 메인 비즈니스 로직 실행
