@@ -555,65 +555,106 @@ img {
 }
 
 /* =========================================
-   Media Queries
+   Media Queries (모바일 퍼스트: min-width 사용)
    ========================================= */
-/* Tablet (768px 이하) */
-@media screen and (max-width: 768px) {
-  .nav__menu {
-    position: fixed;
-    top: var(--nav-height);
-    right: -100%;
-    width: 70%;
-    height: calc(100vh - var(--nav-height));
-    background-color: var(--color-bg);
-    flex-direction: column;
-    padding: 2rem;
-    box-shadow: -2px 0 10px var(--color-card-shadow);
-    transition: right 0.3s ease;
-  }
 
-  .nav__menu.active {
-    right: 0;
+/* ---- 모바일 기본 스타일 (base, < 768px) ---- */
+/* 햄버거 메뉴: 모바일에서는 슬라이드 메뉴로 동작 */
+.nav__menu {
+  position: fixed;
+  top: var(--nav-height);
+  right: -100%;
+  width: 70%;
+  height: calc(100vh - var(--nav-height));
+  background-color: var(--color-bg);
+  flex-direction: column;
+  padding: 2rem;
+  box-shadow: -2px 0 10px var(--color-card-shadow);
+  transition: right 0.3s ease;
+}
+
+.nav__menu.active {
+  right: 0;
+}
+
+.nav__list {
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nav__toggle {
+  display: flex;
+}
+
+.nav__toggle.active .bar:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.nav__toggle.active .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.nav__toggle.active .bar:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+.about__container {
+  flex-direction: column;
+  text-align: center;
+}
+
+.hero__title {
+  font-size: 2.2rem;
+}
+
+.hero__buttons {
+  flex-direction: column;
+}
+
+.section {
+  padding: 60px 0;
+}
+
+/* ---- 태블릿 (768px 이상) ---- */
+@media screen and (min-width: 768px) {
+  .nav__menu {
+    position: static;
+    width: auto;
+    height: auto;
+    background-color: transparent;
+    flex-direction: row;
+    padding: 0;
+    box-shadow: none;
   }
 
   .nav__list {
-    flex-direction: column;
-    gap: 1.5rem;
+    flex-direction: row;
+    gap: 2rem;
   }
 
   .nav__toggle {
-    display: flex;
-  }
-  
-  .nav__toggle.active .bar:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
-  }
-  
-  .nav__toggle.active .bar:nth-child(2) {
-    opacity: 0;
-  }
-  
-  .nav__toggle.active .bar:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    display: none;
   }
 
   .about__container {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
   }
-  
+
   .hero__title {
-    font-size: 2.2rem;
+    font-size: 3rem;
+  }
+
+  .hero__buttons {
+    flex-direction: row;
+  }
+
+  .section {
+    padding: 100px 0;
   }
 }
 
-/* Mobile (480px 이하) */
-@media screen and (max-width: 480px) {
-  .hero__buttons {
-    flex-direction: column;
-  }
-  
-  .section {
-    padding: 60px 0;
-  }
+/* ---- 데스크톱 (1024px 이상) ---- */
+@media screen and (min-width: 1024px) {
+  /* 데스크톱 고유 스타일 추가 가능 */
 }
