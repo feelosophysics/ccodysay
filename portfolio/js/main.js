@@ -98,7 +98,7 @@ scrollTopBtn.addEventListener('click', (e) => {
 // ==========================================
 // 4. 스크롤 애니메이션 (Intersection Observer)
 // ==========================================
-const observerOptions = { root: null, rootMargin: '0px', threshold: 0.2 };
+const observerOptions = { root: null, rootMargin: '0px', threshold: 0.5 };
 const observer = new IntersectionObserver((entries, observer) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {

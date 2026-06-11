@@ -52,7 +52,7 @@ glad/portfolio/
 |----------|--------|------|
 | **스크롤 탑 버튼** | `300px` | 스크롤이 300px 이상일 때 버튼이 나타남 |
 | **네비게이션 스타일 변경** | `60px` | 스크롤이 60px 이상일 때 네비게이션 배경에 `box-shadow` 추가 |
-| **스크롤 애니메이션** | `threshold: 0.2` | Intersection Observer의 임계값. 요소가 20% 이상 화면에 보일 때 애니메이션 발동 |
+| **스크롤 애니메이션** | `threshold: 0.5` | Intersection Observer의 임계값. 요소가 50% 이상 화면에 보일 때 애니메이션 발동 |
 
 ## 🔄 상태 → 렌더링 흐름 (중앙 집중식 STATE 패턴)
 
@@ -267,7 +267,7 @@ const STATE = {
 - [x] **c. 스크롤 탑 버튼**: 스크롤 `300px` 이상에서 나타남, 클릭 시 페이지 최상단 이동
 - [x] **d. 네비게이션 스타일 변경**: 스크롤 `60px` 이상에서 배경에 `box-shadow` 추가
 - [x] **e. 다크 모드**: 토글 전환 + `localStorage` 저장으로 새로고침 후에도 유지
-- [x] **f. 스크롤 애니메이션**: Intersection Observer `threshold: 0.2` 사용
+- [x] **f. 스크롤 애니메이션**: Intersection Observer `threshold: 0.5` 사용
   <details>
   <summary><b>💡 주요 인터랙션 기술 분석 및 임계값 설정 기준 (자세히 보기)</b></summary>
 
@@ -297,9 +297,9 @@ const STATE = {
 
   #### 3) 스크롤 등장 애니메이션 (`Intersection Observer`)
   스크롤할 때 각 요소가 부드럽게 위로 솟아오르며 나타나는 효과입니다.
-  - **`threshold: 0.2`로 설정한 이유:** 대상 요소의 면적이 브라우저 뷰포트에 **최소 20% 이상 노출되었을 때**를 이벤트 트리거 타이밍으로 삼았습니다. 0으로 하면 스치자마자 튀어나와 부자연스럽고, 0.5 이상으로 하면 높이가 큰 요소는 스크롤을 거의 끝까지 내려야만 반응하므로 사용자 시선 이동 속도에 맞추어 가장 자연스러운 '20%'를 임계값으로 선정했습니다.
+  - **`threshold: 0.5`로 설정한 이유:** 대상 요소의 면적이 브라우저 뷰포트에 **최소 50% 이상 노출되었을 때**를 이벤트 트리거 타이밍으로 삼았습니다. 요소의 절반 가량이 확실하게 화면에 진입한 뒤 애니메이션이 발동하여, 사용자가 콘텐츠의 형태를 충분히 인지한 상태에서 등장하도록 유도하여 시각적 안정감을 줍니다.
   ```javascript
-  const observerOptions = { root: null, threshold: 0.2 };
+  const observerOptions = { root: null, threshold: 0.5 };
   const observer = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {

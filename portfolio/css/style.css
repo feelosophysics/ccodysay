@@ -3,21 +3,26 @@
    ========================================= */
 :root {
   /* 따뜻한 파스텔톤 컬러 팔레트 */
-  --color-bg: #fffbf7; /* 아주 연한 베이지 (주 배경) */
-  --color-bg-alt: #fceceb; /* 연한 핑크베이지 (서브 배경) */
-  --color-text: #4a403d; /* 부드러운 다크브라운 (텍스트) */
-  --color-text-muted: #8c827f; /* 보조 텍스트 */
-  --color-primary: #f2a6a6; /* 파스텔 코랄 (포인트 컬러) */
+  --color-bg: #fffbf7;
+  /* 아주 연한 베이지 (주 배경) */
+  --color-bg-alt: #fceceb;
+  /* 연한 핑크베이지 (서브 배경) */
+  --color-text: #4a403d;
+  /* 부드러운 다크브라운 (텍스트) */
+  --color-text-muted: #8c827f;
+  /* 보조 텍스트 */
+  --color-primary: #f2a6a6;
+  /* 파스텔 코랄 (포인트 컬러) */
   --color-primary-hover: #e08b8b;
   --color-border: #f0dedd;
   --color-error: #e57373;
   --color-success: #81c784;
   --color-card-bg: #ffffff;
-  --color-card-shadow: rgba(0, 0, 0, 0.05);
+  --color-card-shadow: rgba(0, 0, 0, 0.627);
 
   /* Fonts */
   --font-main: 'Inter', sans-serif;
-  
+
   /* Layout */
   --nav-height: 70px;
   --container-width: 1100px;
@@ -25,11 +30,12 @@
 
 /* Dark Mode Variables */
 [data-theme="dark"] {
-  --color-bg: #2d2a2a; /* 따뜻한 다크 그레이 */
-  --color-bg-alt: #383434; 
+  --color-bg: #2d2a2a;
+  /* 따뜻한 다크 그레이 */
+  --color-bg-alt: #383434;
   --color-text: #f5f0f0;
   --color-text-muted: #b8b1b1;
-  --color-primary: #f5baba; 
+  --color-primary: #f5baba;
   --color-primary-hover: #e8a7a7;
   --color-border: #4d4848;
   --color-card-bg: #3b3737;
@@ -154,7 +160,7 @@ img {
 }
 
 .header.scrolled {
-  box-shadow: 0 2px 10px var(--color-card-shadow);
+  box-shadow: 0 4px 20px var(--color-card-shadow);
   /* 약간 투명하게 처리 가능하나 여기선 불투명으로 진행 */
 }
 
@@ -264,8 +270,15 @@ img {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 /* =========================================
@@ -407,7 +420,9 @@ img {
   padding-top: 1rem;
 }
 
-.projects__loading, .projects__error, .projects__empty {
+.projects__loading,
+.projects__error,
+.projects__empty {
   text-align: center;
   grid-column: 1 / -1;
   padding: 2rem;
