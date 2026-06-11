@@ -58,8 +58,8 @@ React, Vue, Angular 같은 모던 프론트엔드 프레임워크는 결국 내�
 ```
 흐름 1: 다크 모드 토글 클릭 → STATE.theme 변경 → renderTheme() → 전체 화면 색상 전환
 흐름 2: GitHub API 호출 → STATE.portfolio.status 변경 → renderProjectsUI() → 로딩/카드/에러/빈 화면
-흐름 3: 폼 입력/제출 → 각 필드 유효성 상태 변경 → showError()/clearError() → 에러 메시지 표시/숨김
-흐름 4: 필터 버튼 클릭 → STATE.portfolio.filter 변경 → renderProjectsUI() → 프로젝트 목록 필터링
+흐름 3: 필터 버튼 클릭 → STATE.portfolio.filter 변경 → renderProjectsUI() → 프로젝트 목록 필터링
+흐름 4: 폼 입력/제출 → 각 필드 유효성 상태 변경 → showError()/clearError() → 에러 메시지 표시/숨김
 ```
 
 ---
@@ -146,7 +146,7 @@ CSS 파일의 첫 부분에서는 모든 브라우저가 멋대로 가진 기본
   --color-error: #e57373;
   --color-success: #81c784;
   --color-card-bg: #ffffff;
-  --color-card-shadow: rgba(0, 0, 0, 0.05);
+  --color-card-shadow: rgba(0, 0, 0, 0.627);
 
   --font-main: 'Inter', sans-serif;
   --nav-height: 70px;
@@ -237,7 +237,7 @@ HTML만 적어두면 메뉴가 아래로 한 줄씩 못생기게 나열됩니다
 }
 
 .header.scrolled {
-  box-shadow: 0 2px 10px var(--color-card-shadow);
+  box-shadow: 0 4px 20px var(--color-card-shadow);
 }
 
 .nav {
@@ -814,7 +814,7 @@ filterBtns.forEach(btn => {
 
 ```javascript
 // JS
-const observerOptions = { root: null, rootMargin: '0px', threshold: 0.2 };
+const observerOptions = { root: null, rootMargin: '0px', threshold: 0.5 };
 const observer = new IntersectionObserver((entries, observer) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -834,7 +834,7 @@ document.querySelectorAll('.section__title, .about__img-wrapper, .about__info, .
 - **CSS 트릭**: `.fade-in` 클래스로 요소를 투명(opacity: 0)하게 만들고 30px 아래로 밀어놓습니다. `.appear` 클래스가 추가되면 원래 위치로 올라오면서 보이게 됩니다.
 - 과거에는 스크롤 애니메이션을 위해 픽셀 단위로 스크롤 위치를 감시(`window.addEventListener('scroll')`)해야 했고, 이는 컴퓨터 자원을 엄청나게 갉아먹었습니다.
 - `Intersection Observer`(교차 관찰자)는 최신 기술입니다. 브라우저가 직접 나서서 "이 요소가 사용자의 화면(뷰포트)에 들어왔어!"라고 알려주는 스마트한 망원경입니다.
-- `threshold: 0.2`: **임계값**입니다. 요소의 20%가 화면에 보여야 발동합니다. 0이면 1px만 보여도 발동, 1.0이면 100% 다 보여야 발동합니다.
+- `threshold: 0.5`: **임계값**입니다. 요소의 50%가 화면에 보여야 발동합니다. 0이면 1px만 보여도 발동, 1.0이면 100% 다 보여야 발동합니다.
 - `root: null`: 관찰 기준이 브라우저 뷰포트(화면 전체)임을 뜻합니다.
 - `isIntersecting`: 망원경으로 보던 요소가 드디어 화면에 겹쳐서(교차해서) 보이기 시작했는지 묻는 속성입니다.
 - `classList.add('appear')`: 화면에 보이면 `appear`라는 클래스를 딱 붙여줍니다. CSS에 미리 작성해둔 애니메이션 규칙에 의해 이 요소가 투명도 0에서 1로 변하며 나타납니다.
@@ -849,7 +849,7 @@ document.querySelectorAll('.section__title, .about__img-wrapper, .about__info, .
 ### 6-1. `<form>`과 짝꿍 태그들 (`index.html`)
 
 ```html
-<form id="contact-form" class="contact__form" action="https://formspree.io/f/my_form_id_here" method="POST">
+<form id="contact-form" class="contact__form" action="https://formspree.io/f/xpqejrwb" method="POST">
   <div class="form__group">
     <label for="name" class="form__label">Name</label>
     <input type="text" id="name" name="name" class="form__input" placeholder="이름을 입력하세요">
@@ -1204,7 +1204,7 @@ GitHub Pages는 GitHub 저장소에 올린 HTML/CSS/JS 파일을 무료로 웹�
 - [x] 스크롤 탑 버튼 (기준: **300px**)
 - [x] 네비게이션 스타일 변경 (기준: **60px**)
 - [x] 다크 모드 (localStorage 저장, 새로고침 유지)
-- [x] 스크롤 애니메이션 (Intersection Observer, threshold: **0.2**)
+- [x] 스크롤 애니메이션 (Intersection Observer, threshold: **0.5**)
 
 **폼 UX (4-6)**
 - [x] 이름, 이메일, 메시지 필수값 검증
