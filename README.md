@@ -4,9 +4,7 @@
 
 ## 🚀 배포 링크
 
-> **배포 예정** — GitHub Pages 활성화 후 아래 URL을 업데이트합니다.
-
-- 배포 URL: `https://feelosophysics.github.io/glad/portfolio/`
+- 배포 URL: [https://feelosophysics.github.io/glad/portfolio/](https://feelosophysics.github.io/glad/portfolio/)
 
 ## ✨ 주요 기능
 
@@ -113,13 +111,11 @@ const STATE = {
 
 ## 📸 스크린샷
 
-> **배포 후 추가 예정** — 데스크톱, 모바일, 다크 모드 스크린샷을 촬영하여 아래에 추가합니다.
-
 | 뷰 | 스크린샷 |
 |-----|----------|
-| 데스크톱 (Light) | *추가 예정* |
-| 모바일 (Light) | *추가 예정* |
-| 다크 모드 | *추가 예정* |
+| 데스크톱 (Light) | ![데스크톱 라이트 모드](portfolio/images/screenshot_desktop.png) |
+| 모바일 (Light) | ![모바일 라이트 모드](portfolio/images/screenshot_mobile.png) |
+| 다크 모드 | ![다크 모드](portfolio/images/screenshot_dark.png) |
 
 ## 🧠 학습 목표 및 성과
 
@@ -441,10 +437,10 @@ const STATE = {
 - [x] 상태 → 렌더링 흐름 4가지 구현 (다크 모드, API 상태, 폼 유효성, 필터)
 
 ### 4-10. 배포
-- [ ] GitHub Pages 배포 (⏳ 예정)
-- [ ] 배포 URL에서 모든 기능 정상 동작 확인 (⏳ 예정)
+- [x] GitHub Pages 배포
+- [x] 배포 URL에서 모든 기능 정상 동작 확인
 - [x] README에 프로젝트 설명, 사용 기술, 배포 URL 섹션 포함
-- [ ] README에 스크린샷 포함 (⏳ 배포 후 추가 예정)
+- [x] README에 스크린샷 포함
 
 ---
 
@@ -461,6 +457,6 @@ const STATE = {
 
 | 작업 | 상태 |
 |------|------|
-| Formspree에서 실제 Form ID 발급 후 `index.html`의 action URL 교체 | ⏳ |
-| GitHub Pages 배포 활성화 | ⏳ |
-| 데스크톱 / 모바일 / 다크모드 스크린샷 촬영 후 README에 추가 | ⏳ |
+| Formspree에서 실제 Form ID 발급 후 `index.html`의 action URL 교체 | ✅ 완료 |
+| GitHub Pages 배포 활성화 | ✅ 완료 |
+| 데스크톱 / 모바일 / 다크모드 스크린샷 촬영 후 README에 추가 | ✅ 완료 |
