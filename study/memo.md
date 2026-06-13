@@ -27,15 +27,78 @@
 - **`fetch`는 항상 `await`와 쓰나요?**:
   - 꼭 그렇지는 않습니다. `await` 대신 `.then()`과 `.catch()`를 이어 붙이는 전통적인 방식(Promise 체이닝)도 가능합니다. 하지만 `async/await`를 쓰는 것이 위에서 아래로 읽히는 코드 구조 덕분에 훨씬 이해하기 쉽고 직관적입니다.
 
-## 4. GitHub 데이터를 카드 UI로 변환하는 과정
-- **1단계: `filter` (원하는 것만 거르기)**
-  - 전체 프로젝트 목록에서 포크(Fork)된 프로젝트는 제외하고 본인의 순수 프로젝트만 골라냅니다.
-- **2단계: `map` (HTML 카드로 형태 바꾸기)**
-  - 골라낸 프로젝트 데이터를 하나씩 순회하며 HTML 카드 모양의 문자열 템플릿(글자)으로 변환합니다.
-- **3단계: `join` (하나의 글자로 합치기)**
-  - 여러 개의 HTML 카드 문자열을 하나의 거대한 글자 주머니로 합칩니다.
-- **4단계: `innerHTML` (화면에 뿌리기)**
-  - 합쳐진 거대한 HTML 문자열을 웹 화면의 지정된 컨테이너 공간에 집어넣어 화면에 카드를 그립니다.
+## 4. GitHub 데이터를 카드 UI로 변환하는 과정 (내 코드 기준 상세 분석)
+
+우리 포트폴리오 프로젝트의 [main.js](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js)에서는 GitHub API를 통해 받아온 데이터를 가공하여 화면에 카드 형태로 렌더링하는 파이프라인(Pipeline)을 구축하고 있습니다. 이 과정에서 `filter`, `map`, `join` 메서드와 `innerHTML` 속성이 어떻게 유기적으로 협업하는지 단계별로 분석합니다.
+
+### 🔄 전체 데이터 흐름도
+```mermaid
+graph TD
+    A[GitHub API 수신 data] -->|1차 필터링: !repo.fork| B(STATE.portfolio.allData 저장)
+    B -->|2차 필터링: 언어별 선택| C(filteredData 배열 생성)
+    C -->|map: HTML 문자열 배열 변환| D(HTML Template Array)
+    D -->|join: 하나의 큰 문자열로 합침| E(projectsHTML 문자열)
+    E -->|innerHTML: DOM 주입| F[projectsContainer 브라우저 화면 출력]
+```
+
+### 📦 1단계: 원본 데이터에서 Fork(복사)된 레포지토리 제외하기 (`filter`)
+- **역할**: GitHub API에서 받아온 30개의 최근 저장소 목록 중, 타인의 저장소를 복사(Fork)해 온 프로젝트를 제외하고 본인의 순수 개인 프로젝트만 걸러냅니다.
+- **해당 코드**: [main.js:L232](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js#L232)
+  ```javascript
+  // 본인 레포지토리만 필터링 (fork가 false인 것만 통과)
+  STATE.portfolio.allData = data.filter(repo => !repo.fork);
+  ```
+- **원리**: `filter` 메서드는 조건 함수가 `true`를 반환하는 요소들만 모아 **새로운 배열**을 만듭니다. `!repo.fork`는 fork 상태가 아닐 때(즉, 내 소유일 때) `true`가 되므로 순수 프로젝트 목록만 `allData`에 저장됩니다.
+
+### 🗂️ 2단계: 카테고리(프로그래밍 언어) 버튼에 맞춰 동적 분류하기 (`filter`)
+- **역할**: 사용자가 상단의 언어 필터 버튼([All], [JavaScript], [Python] 등)을 클릭했을 때, 현재 선택된 언어 상태에 맞게 한번 더 걸러냅니다.
+- **해당 코드**: [main.js:L186-L188](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js#L186-L188)
+  ```javascript
+  const filteredData = filter === 'all'
+    ? allData
+    : allData.filter(repo => repo.language === filter);
+  ```
+- **원리**: 선택된 필터가 `'all'`이면 전체 데이터를 그대로 보여주고, 특정 언어가 지정되면 `repo.language`가 현재 선택된 필터 값과 일치하는 레포지토리만 추출하여 `filteredData`를 만듭니다.
+
+### 🎨 3단계: JSON 객체 배열을 HTML 카드 디자인으로 변환하기 (`map`)
+- **역할**: 필터링을 거친 객체 데이터 배열(`filteredData`)을 돌면서, 각각의 레포지토리 정보를 사용자가 시각적으로 볼 수 있는 HTML 카드 형태의 **문자열**로 변환합니다.
+- **해당 코드**: [main.js:L197-L211](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js#L197-L211)
+  ```javascript
+  const projectsHTML = filteredData.map(repo => {
+    const description = repo.description || '프로젝트에 대한 설명이 없습니다.';
+    const language = repo.language || 'Others';
+
+    return `
+      <article class="project-card fade-in appear">
+        <h3><a href="${repo.html_url}" target="_blank" rel="noopener noreferrer">${repo.name}</a></h3>
+        <p>${description}</p>
+        <div class="project-meta">
+          <span>${language}</span>
+          <span>⭐ ${repo.stargazers_count}</span>
+        </div>
+      </article>
+    `;
+  })
+  ```
+- **원리**: `map` 메서드는 배열 내부의 모든 원소를 1대1로 순회하면서, 지정한 콜백 함수가 반환하는 값(여기서는 백틱 `` ` ``을 이용한 템플릿 리터럴 HTML 문자열)으로 채워진 **새로운 배열**을 생성합니다.
+- **결과**: `map` 실행 직후의 형태는 다음과 같은 문자열 배열 상태입니다:
+  `['<article class="...">...</article>', '<article class="...">...</article>', ...]`
+
+### 🔗 4단계: 개별 문자열 배열을 하나의 거대한 텍스트로 합치기 (`join`)
+- **역할**: `map`의 결과로 나온 HTML 문자열 배열을 브라우저에 그대로 넣으면 요소 사이에 쉼표(`,`)가 노출됩니다. 이를 막기 위해 배열의 모든 문자열을 공백(`''`) 구분자로 매끄럽게 연결해 줍니다.
+- **해당 코드**: [main.js:L211](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js#L211)
+  ```javascript
+  }).join('');
+  ```
+- **원리**: `join('')`을 호출하면 배열 `['A', 'B', 'C']`가 하나의 문자열 `"ABC"`로 병합되듯, 여러 장의 카드 조각들이 하나의 거대한 HTML 덩어리 문자열 `"장치A장치B장치C"`가 됩니다.
+
+### 🖥️ 5단계: 완성된 HTML 덩어리를 DOM에 직접 주입하기 (`innerHTML`)
+- **역할**: 완성된 프로젝트 카드 전체가 담긴 텍스트 덩어리를 실제 웹 화면의 부모 컨테이너(`projects-container`) 내부에 집어넣어, 브라우저가 화면에 실시간으로 그리게(렌더링) 만듭니다.
+- **해당 코드**: [main.js:L214](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js#L214)
+  ```javascript
+  projectsContainer.innerHTML = projectsHTML;
+  ```
+- **원리**: 브라우저는 HTML 요소의 `innerHTML` 속성에 문자열이 입력되면 이를 단순 글자가 아닌 HTML 마크업 태그로 인식하여 파싱(해석)한 뒤, 브라우저의 DOM 트리에 동적으로 결합시킵니다. 이 시점에 CSS 스타일(`.project-card`)이 즉각 적용되며 카드가 완성되어 사용자 화면에 노출됩니다.
 
 ## 5. 미디어 쿼리 (Media Query)란?
 - **정의**: 기기의 화면 크기(가로 너비)에 따라 서로 다른 CSS 스타일을 적용해 주는 CSS의 조건문입니다.
