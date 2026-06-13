@@ -521,3 +521,197 @@ graph TD
     2. **북마크 (Bookmarks)**: 폴더 구조와 정렬 순서가 포함된 사용자 즐겨찾기 정보.
     3. **쿠키 (Cookies)**: 서버와 도메인별 세션 토큰 및 메타데이터 관리.
     4. **자동 완성 및 양식 데이터 (Autofill / Form History)**
+
+## 55. 이벤트 ➔ 상태 변화 ➔ 렌더링 (Event ➔ State Change ➔ Rendering) 흐름 분석 (깃허브 연동 UI 기준)
+
+우리 코드베이스의 [main.js](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js)는 현대 프론트엔드 프레임워크(React 등)의 핵심 철학인 **"상태 기반 렌더링 (State-Driven Rendering)"** 패턴을 순수 자바스크립트로 구현하고 있습니다.
+
+이벤트가 발생해서 데이터가 바뀌고, 그 결과가 화면에 그려지기까지의 흐름을 기술적인 로직 중심으로 하나씩 뜯어봅시다.
+
+---
+
+### 1단계. 개념의 기둥: 상태(State)와 렌더링(Rendering)의 관계
+초심자 친구에게 설명할 때 가장 먼저 짚어야 할 핵심은 **"화면을 직접 바꾸는 것이 아니라, 데이터를 바꾼 뒤 화면을 다시 그리게 만드는 것"**입니다.
+
+* **상태 (State)**: 애플리케이션의 현재 상황을 나타내는 **"메모리 상의 데이터"**입니다.
+* **이벤트 (Event)**: 사용자의 클릭, 스크롤, 또는 타이핑이나 페이지가 처음 로드되는 등 상태를 변화시키는 **"방아쇠"**입니다.
+* **렌더링 (Rendering)**: 현재 상태 데이터를 기반으로 HTML 구조를 새로 만들어 **"화면에 출력"**하는 과정입니다.
+
+```mermaid
+flowchart LR
+    A[이벤트 Event] -->|1. 유발| B[상태 변화 State Change]
+    B -->|2. 트리거| C[렌더링 Rendering]
+    C -->|3. UI 반영| D[사용자 화면]
+```
+
+이 패턴이 강력한 이유는 **UI를 변경하는 모든 규칙이 한 곳(렌더링 함수)에 모이기 때문**입니다. 만약 상태 기반으로 짜지 않았다면, API를 부르는 곳, 에러가 난 곳, 필터를 누른 곳 각각에서 화면의 요소를 직접 수정(DOM 조작)해야 하므로 코드가 엉망이 됩니다.
+
+---
+
+### 2단계. GitHub 연동 UI의 비동기 상태 변화 흐름 (State Lifecycle)
+
+GitHub API로부터 데이터를 가져오는 통신은 **비동기(Asynchronous)**로 처리됩니다. 통신이 진행됨에 따라 `STATE.portfolio.status`라는 상태 값은 다음과 같이 변하며, 화면은 이 상태에 맞춰 즉각 렌더링됩니다.
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle: 최초 로드
+    idle --> loading: fetchProjects() 실행 시작
+    loading --> success: 데이터 수신 성공 (response.ok)
+    loading --> error: 네트워크 에러 또는 API 제한 (catch / !ok)
+    success --> loading: '다시 시도' 클릭 또는 데이터 갱신
+    error --> loading: '다시 시도' 클릭 시 재시도
+```
+
+1. **`idle` (대기)**: 초기 상태. 아직 아무 일도 일어나지 않은 상태입니다.
+2. **`loading` (로딩 중)**: API 요청을 보내고 응답을 기다리는 중입니다.
+3. **`success` (성공)**: 데이터를 성공적으로 받아와 `STATE.portfolio.allData`에 저장한 상태입니다.
+4. **`error` (에러)**: 네트워크 통신 실패, 혹은 GitHub API 호출 제한 초과(403) 등으로 데이터 로드에 실패한 상태입니다.
+
+---
+
+### 3단계. 코드 기반 상세 분석 (Event ➔ State ➔ Render)
+
+실제 [main.js](file:///Users/f22losophysics1091/Desktop/glad/portfolio/js/main.js)의 코드가 어떻게 유기적으로 맞물려 도는지 동작 순서대로 분석해 봅시다.
+
+#### 🎬 1. 시작점 (Event): 초기 로드 및 API 호출
+웹페이지가 처음 실행되면 맨 아래에 있는 `fetchProjects()` 함수가 자동으로 호출(실행)됩니다.
+
+* **이벤트**: 페이지 로드 (초기 실행)
+* **상태 변화**:
+  1. `STATE.portfolio.status`를 `'loading'`으로 변경합니다.
+  2. 로딩 화면을 보여주기 위해 즉시 `renderProjectsUI()`를 호출합니다.
+
+```javascript
+const fetchProjects = async () => {
+  STATE.portfolio.status = 'loading'; // 1. 상태를 '로딩중'으로 변경
+  renderProjectsUI();                 // 2. 바뀐 상태로 화면 그리기
+
+  try {
+    // 3. 비동기 데이터 요청 (await로 대기)
+    const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated`);
+
+    if (!response.ok) {
+      throw new Error(response.status === 403 ? 'API 호출 제한 초과' : '데이터를 불러올 수 없습니다.');
+    }
+
+    const data = await response.json();
+
+    // 4. 성공 시 상태 업데이트
+    STATE.portfolio.allData = data.filter(repo => !repo.fork); // fork된 레포 제외
+    STATE.portfolio.status = 'success';                       // 상태를 '성공'으로 변경
+    renderProjectsUI();                                       // 5. 성공 상태로 화면 갱신
+
+  } catch (error) {
+    // 6. 에러 발생 시 상태 업데이트
+    STATE.portfolio.status = 'error';                          // 상태를 '에러'로 변경
+    STATE.portfolio.errorMsg = error.message;                 // 에러 메시지 기록
+    renderProjectsUI();                                       // 7. 에러 상태로 화면 갱신
+  }
+};
+```
+
+---
+
+#### 🎨 2. 화면 처리의 핵심 (Rendering): `renderProjectsUI()`
+이 함수는 `STATE.portfolio`에 저장된 현재 상태를 읽어 화면에 표시할 HTML을 동적으로 결정하는 **컨트롤 타워**입니다. 여기에는 기술적 논리가 집약되어 있습니다.
+
+```javascript
+const renderProjectsUI = () => {
+  const { status, allData, filter, errorMsg } = STATE.portfolio;
+
+  // 1. 로딩 상태 처리 (status === 'loading')
+  if (status === 'loading') {
+    projectsContainer.innerHTML = '<div class="projects__loading">프로젝트를 불러오는 중입니다...</div>';
+    return; // 더 아래 코드는 실행하지 않고 중단 (Early Return)
+  }
+
+  // 2. 에러 상태 처리 (status === 'error')
+  if (status === 'error') {
+    projectsContainer.innerHTML = `
+      <div class="projects__error">
+        <p>${errorMsg}</p>
+        <button class="btn btn--outline" id="retry-btn">다시 시도</button>
+      </div>
+    `;
+
+    // 에러 발생 시 화면에 생성된 '다시 시도' 버튼에 클릭 이벤트 동적 바인딩
+    const retryBtn = projectsContainer.querySelector('#retry-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', fetchProjects);
+    }
+    return; // Early Return
+  }
+
+  // 3. 성공 상태 처리 (status === 'success')
+  // 삼항 연산자를 활용한 조건부 렌더링 및 필터링
+  const filteredData = filter === 'all'
+    ? allData // 필터가 'all'이면 전체 데이터 사용
+    : allData.filter(repo => repo.language === filter); // 특정 언어면 해당 언어만 필터링
+
+  // 3-1. 필터링 결과 보여줄 프로젝트가 없을 때
+  if (status === 'success' && filteredData.length === 0) {
+    projectsContainer.innerHTML = '<div class="projects__empty">표시할 프로젝트가 없습니다.</div>';
+    return;
+  }
+
+  // 3-2. HTML 카드 생성 (Map & Join)
+  const projectsHTML = filteredData.map(repo => {
+    const description = repo.description || '프로젝트에 대한 설명이 없습니다.';
+    const language = repo.language || 'Others';
+
+    return `
+      <article class="project-card fade-in appear">
+        <h3><a href="${repo.html_url}" target="_blank" rel="noopener noreferrer">${repo.name}</a></h3>
+        <p>${description}</p>
+        <div class="project-meta">
+          <span>${language}</span>
+          <span>⭐ ${repo.stargazers_count}</span>
+        </div>
+      </article>
+    `;
+  }).join(''); // 배열을 하나의 문자열로 결합
+
+  // 4. 최종 DOM 업데이트
+  projectsContainer.innerHTML = projectsHTML;
+};
+```
+
+* **Early Return 기법**: `if (조건) { ... return; }` 구문을 사용하여 특정 상태가 만족되면 함수 실행을 즉시 중단합니다. 이렇게 하면 복잡한 `if-else` 중첩 구조를 만들지 않고도 각 상태별 렌더링 로직을 깔끔하게 분리할 수 있습니다.
+* **삼항 연산자(`? :`)**: `const filteredData = filter === 'all' ? allData : allData.filter(...)` 코드는 필터 값에 따라 사용할 데이터를 결정하는 조건문 역할을 간결하게 수행합니다.
+* **동적 이벤트 바인딩**: `status === 'error'`일 때 HTML 문자열을 집어넣은 직후, 그 안에 생성된 `#retry-btn` 버튼을 `querySelector`로 찾아서 클릭 이벤트(`fetchProjects`)를 연결해 줍니다. 화면이 새로 그려질 때 버튼도 새로 만들어지기 때문에 이 시점에 이벤트를 다시 걸어주어야 작동합니다.
+
+---
+
+#### 🎛️ 3. 필터 버튼 클릭 이벤트 (Event ➔ State ➔ Render)
+화면 상단의 언어 필터 버튼을 클릭했을 때의 흐름입니다.
+
+```javascript
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    // UI 장식: 기존 active 버튼 표시 지우고 현재 클릭한 버튼에 active 추가
+    filterBtns.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+
+    // 1. 상태 변경: STATE.portfolio.filter 값을 클릭한 버튼의 data-filter 속성값으로 변경
+    STATE.portfolio.filter = e.target.getAttribute('data-filter');
+
+    // 2. 렌더링 요청: 바뀐 상태를 화면에 그리기 위해 renderProjectsUI 호출
+    renderProjectsUI();
+  });
+});
+```
+
+* **이벤트**: 사용자가 `[JavaScript]` 버튼을 클릭함.
+* **상태 변화**: `STATE.portfolio.filter`가 `'JavaScript'`로 갱신됨.
+* **렌더링**: `renderProjectsUI()`가 실행되어 `filteredData`를 구할 때 `repo.language === 'JavaScript'`인 저장소들만 골라내어 카드 UI를 조립하고 화면에 주입함.
+
+---
+
+### 4단계. 친구에게 설명하기 위한 3줄 요약 비유
+초심자 친구에게 이 과정을 가장 쉽게 설명하는 방법입니다.
+
+> 1. **이벤트(Event)**: "사용자가 버튼을 누르거나 화면이 처음 열리는 등 **변화의 신호탄**이 쏘아 올려지는 단계야."
+> 2. **상태 변화(State Change)**: "화면을 직접 고치는 게 아니라, `STATE`라는 **상황 메모장**에 기록된 값(로딩 중인지, 무슨 필터인지, 받아온 데이터가 무엇인지)을 바꾸는 단계야."
+> 3. **렌더링(Rendering)**: "`renderProjectsUI` 함수가 **상황 메모장의 내용을 읽어서** 현재 상태에 맞게 HTML 카드를 다시 그려서 칠판(화면)에 붙이는 단계야."
+
+이처럼 **"이벤트 ➔ 상태 변경 ➔ 렌더링 호출"** 구조로 코드를 설계하면, 기능이 늘어나고 복잡해져도 버그를 쉽게 찾고 해결할 수 있는 튼튼한 뼈대가 완성됩니다.
