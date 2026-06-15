@@ -60,7 +60,37 @@ python3 -m minigit
 
 본 프로젝트는 철저한 소프트웨어 엔지니어링 원칙에 기반하여 리팩토링 및 패키지화되었습니다.
 
-- **OOP 기반 캡슐화 및 단일 책임 원칙 (SRP)**: 기존의 전역 함수 기반 라우팅을 `MiniGitCLI` 클래스 객체 안으로 캡슐화하여 REPL 상태와 라우팅 로직을 독립시켰습니다.
+### 📊 시스템 아키텍처 및 모듈 흐름
+
+```mermaid
+flowchart TD
+    subgraph CLI ["CLI Layer (REPL)"]
+        Main["__main__.py (MiniGitCLI)"]
+    end
+
+    subgraph Core ["Core Data Layer"]
+        Models["models.py (Repository, Commit)"]
+        Constants["constants.py (Enums, Messages)"]
+    end
+
+    subgraph Algos ["Algorithm Layer"]
+        Graph["graph.py (BFS, DFS, Kahn's)"]
+        Sorting["sorting.py (Merge, Quick Sort)"]
+        Index["index.py (Inverted Index)"]
+        Diff["diff.py (LCS Diff)"]
+    end
+
+    Main -->|Controls Repository| Models
+    Main -->|Calls topological_sort, BFS, DFS| Graph
+    Main -->|Calls merge_sort, benchmarks| Sorting
+    Main -->|Calls diff_files| Diff
+    Main -->|Calls search_keyword / search_author| Models
+
+    Models -->|Updates index during commit| Index
+    Models -.->|Reads constants| Constants
+```
+
+- **OOP 기반 캡슐화 및 단일 책임 원칙 (SRP)**: `MiniGitCLI` 클래스 객체 안으로 캡슐화하여 REPL 상태와 라우팅 로직을 독립시켰습니다.
 - **데이터 파이프라인 (3-Step Data Flow)**: 핵심 비즈니스 로직은 오류 방지와 가독성을 위해 반드시 `1. Data Refinement (정제)`, `2. Validation (유효성 검사)`, `3. Logic Execution (실행)`의 명확한 3단계 흐름으로 분리되어 있습니다.
 - **매직 스트링 중앙화**: 애플리케이션 내의 모든 명령어 문자열, 시스템 메시지, 에러 출력 등은 하드코딩되지 않고 `constants.py`에 Enum 및 텍스트 클래스로 중앙 집중화되어 관리됩니다.
 - **타입 힌트 적용**: 명세서로서 기능하는 코드를 지향하여 모든 변수, 파라미터, 반환값에 Python `typing` 모듈을 엄격하게 적용했습니다.
@@ -104,6 +134,57 @@ glad/
 | **Quick Sort (퀵 정렬)** | 벤치마크용 불안정 정렬 | O(n log n) avg | `minigit/sorting.py` |
 | **LCS (최장 공통 부분수열)** | DIFF 파일 비교 | O(m×n) | `minigit/diff.py` |
 
+### 📊 핵심 알고리즘 흐름도
+
+#### 1. 위상 정렬 (Kahn's Algorithm)
+`LOG` 명령어 실행 시 커밋 히스토리(DAG)를 부모-자식 순서대로 정렬하기 위해 사용됩니다.
+
+```mermaid
+flowchart TD
+    Start([시작: topological_sort]) --> InitInDegree[1. 모든 커밋의 진입 차수(in-degree) 계산]
+    InitInDegree --> FindZero[2. 진입 차수가 0인 커밋(HEAD/잎 노드)을 Queue에 추가]
+    FindZero --> Loop{Queue가 비어있지 않은가?}
+    Loop -->|예| Pop[3. Queue에서 커밋을 꺼내어 결과 리스트에 추가]
+    Pop --> Foreach[4. 현재 커밋의 각 부모 커밋에 대해]
+    Foreach --> Decrement[부모 커밋의 진입 차수 1 감소]
+    Decrement --> CheckZero{진입 차수가 0이 되었는가?}
+    CheckZero -->|예| Push[Queue에 부모 커밋 추가]
+    Push --> Foreach
+    CheckZero -->|아니오| Foreach
+    Foreach -->|모든 부모 처리 완료| Loop
+    Loop -->|아니오| Reverse[5. 결과 리스트 뒤집기 (부모가 먼저 출력되도록)]
+    Reverse --> End([종료: 정렬된 커밋 리스트 반환])
+```
+
+#### 2. LCS Diff (최장 공통 부분수열)
+`DIFF` 명령어 실행 시 두 파일 간의 차이점을 줄 단위로 비교하기 위해 사용되는 동적 계획법(DP) 알고리즘입니다.
+
+```mermaid
+flowchart TD
+    subgraph LCS_Table ["LCS DP 테이블 채우기 (compute_lcs_table)"]
+        Match{"lines_a[i-1] == lines_b[j-1]?"}
+        Match -->|예| Diagonal["dp[i][j] = dp[i-1][j-1] + 1"]
+        Match -->|아니오| Max["dp[i][j] = max(dp[i-1][j], dp[i][j-1])"]
+    end
+
+    subgraph Backtracking ["역추적 및 Diff 생성 (compute_diff)"]
+        StartBacktrack([시작: dp[m][n]부터 역추적]) --> LoopCond{i > 0 또는 j > 0?}
+        LoopCond -->|예| Equal{"lines_a[i-1] == lines_b[j-1]?"}
+        
+        Equal -->|예| Keep["' ' (공통 줄) 추가 및 대각선 이동 (i-1, j-1)"]
+        Equal -->|아니오| Compare{"dp[i-1][j] >= dp[i][j-1]?"}
+        
+        Compare -->|예| Del["'-' (삭제 줄) 추가 및 위로 이동 (i-1, j)"]
+        Compare -->|아니오| Add["'+' (추가 줄) 추가 및 왼쪽 이동 (i, j-1)"]
+        
+        Keep --> LoopCond
+        Del --> LoopCond
+        Add --> LoopCond
+        
+        LoopCond -->|아니오| ReverseDiff[결과 리스트를 뒤집어 원래 순서로 복원]
+    end
+```
+
 ## 🌟 보너스 과제
 
 ### 5.1 Diff (파일 비교)
@@ -121,6 +202,45 @@ glad/
 - 안정 정렬 vs 불안정 정렬 비교
 
 ## 💡 사용 예시
+
+### 🔄 주요 명령어 실행 흐름 (INIT -> COMMIT -> LOG)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User
+    participant CLI as __main__.py (MiniGitCLI)
+    participant Repo as models.py (Repository)
+    participant Index as index.py (InvertedIndex)
+    participant Graph as graph.py (topological_sort)
+
+    Note over User, Graph: 1. INIT Command Flow
+    User->>CLI: INIT "Alice"
+    CLI->>Repo: init("Alice")
+    Repo->>Repo: Reset commits & branches, create InvertedIndex
+    Repo-->>CLI: INIT_SUCCESS message
+    CLI-->>User: "Initialized repository..."
+
+    Note over User, Graph: 2. COMMIT Command Flow
+    User->>CLI: COMMIT "Initial commit"
+    CLI->>Repo: commit("Initial commit")
+    Repo->>Repo: Create Commit node (hash, message, etc.)
+    Repo->>Index: add_commit(commit)
+    Note over Index: Tokenize message & map key/author to hash
+    Repo-->>CLI: COMMIT_SUCCESS message
+    CLI-->>User: "[main a1b2c3] Initial commit"
+
+    Note over User, Graph: 3. LOG Command Flow
+    User->>CLI: LOG
+    CLI->>Repo: get_all_commits()
+    Repo-->>CLI: Dict[hash, Commit]
+    CLI->>Graph: topological_sort(commits)
+    Note over Graph: Run Kahn's Algorithm
+    Graph-->>CLI: List[Commit] (sorted order)
+    CLI-->>User: Print formatted commit logs
+```
+
+### 💻 CLI 실행 예시
 
 ```text
 mini-git> init "Alice"
