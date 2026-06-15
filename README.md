@@ -141,19 +141,19 @@ glad/
 
 ```mermaid
 flowchart TD
-    Start([시작: topological_sort]) --> InitInDegree[1. 모든 커밋의 진입 차수(in-degree) 계산]
-    InitInDegree --> FindZero[2. 진입 차수가 0인 커밋(HEAD/잎 노드)을 Queue에 추가]
-    FindZero --> Loop{Queue가 비어있지 않은가?}
-    Loop -->|예| Pop[3. Queue에서 커밋을 꺼내어 결과 리스트에 추가]
-    Pop --> Foreach[4. 현재 커밋의 각 부모 커밋에 대해]
-    Foreach --> Decrement[부모 커밋의 진입 차수 1 감소]
-    Decrement --> CheckZero{진입 차수가 0이 되었는가?}
-    CheckZero -->|예| Push[Queue에 부모 커밋 추가]
+    Start(["시작: topological_sort"]) --> InitInDegree["1. 모든 커밋의 진입 차수(in-degree) 계산"]
+    InitInDegree --> FindZero["2. 진입 차수가 0인 커밋(HEAD/잎 노드)을 Queue에 추가"]
+    FindZero --> Loop{"Queue가 비어있지 않은가?"}
+    Loop -->|예| Pop["3. Queue에서 커밋을 꺼내어 결과 리스트에 추가"]
+    Pop --> Foreach["4. 현재 커밋의 각 부모 커밋에 대해"]
+    Foreach --> Decrement["부모 커밋의 진입 차수 1 감소"]
+    Decrement --> CheckZero{"진입 차수가 0이 되었는가?"}
+    CheckZero -->|예| Push["Queue에 부모 커밋 추가"]
     Push --> Foreach
     CheckZero -->|아니오| Foreach
     Foreach -->|모든 부모 처리 완료| Loop
-    Loop -->|아니오| Reverse[5. 결과 리스트 뒤집기 (부모가 먼저 출력되도록)]
-    Reverse --> End([종료: 정렬된 커밋 리스트 반환])
+    Loop -->|아니오| Reverse["5. 결과 리스트 뒤집기 (부모가 먼저 출력되도록)"]
+    Reverse --> End(["종료: 정렬된 커밋 리스트 반환"])
 ```
 
 #### 2. LCS Diff (최장 공통 부분수열)
@@ -168,7 +168,7 @@ flowchart TD
     end
 
     subgraph Backtracking ["역추적 및 Diff 생성 (compute_diff)"]
-        StartBacktrack([시작: dp[m][n]부터 역추적]) --> LoopCond{i > 0 또는 j > 0?}
+        StartBacktrack(["시작: dp[m][n]부터 역추적"]) --> LoopCond{"i > 0 또는 j > 0?"}
         LoopCond -->|예| Equal{"lines_a[i-1] == lines_b[j-1]?"}
         
         Equal -->|예| Keep["' ' (공통 줄) 추가 및 대각선 이동 (i-1, j-1)"]
@@ -181,7 +181,7 @@ flowchart TD
         Del --> LoopCond
         Add --> LoopCond
         
-        LoopCond -->|아니오| ReverseDiff[결과 리스트를 뒤집어 원래 순서로 복원]
+        LoopCond -->|아니오| ReverseDiff["결과 리스트를 뒤집어 원래 순서로 복원"]
     end
 ```
 
@@ -209,26 +209,26 @@ flowchart TD
 sequenceDiagram
     autonumber
     actor User as User
-    participant CLI as __main__.py (MiniGitCLI)
-    participant Repo as models.py (Repository)
-    participant Index as index.py (InvertedIndex)
-    participant Graph as graph.py (topological_sort)
+    participant CLI as "__main__.py (MiniGitCLI)"
+    participant Repo as "models.py (Repository)"
+    participant Index as "index.py (InvertedIndex)"
+    participant Graph as "graph.py (topological_sort)"
 
     Note over User, Graph: 1. INIT Command Flow
-    User->>CLI: INIT "Alice"
-    CLI->>Repo: init("Alice")
+    User->>CLI: INIT 'Alice'
+    CLI->>Repo: init('Alice')
     Repo->>Repo: Reset commits & branches, create InvertedIndex
     Repo-->>CLI: INIT_SUCCESS message
-    CLI-->>User: "Initialized repository..."
+    CLI-->>User: Initialized repository...
 
     Note over User, Graph: 2. COMMIT Command Flow
-    User->>CLI: COMMIT "Initial commit"
-    CLI->>Repo: commit("Initial commit")
+    User->>CLI: COMMIT 'Initial commit'
+    CLI->>Repo: commit('Initial commit')
     Repo->>Repo: Create Commit node (hash, message, etc.)
     Repo->>Index: add_commit(commit)
     Note over Index: Tokenize message & map key/author to hash
     Repo-->>CLI: COMMIT_SUCCESS message
-    CLI-->>User: "[main a1b2c3] Initial commit"
+    CLI-->>User: [main a1b2c3] Initial commit
 
     Note over User, Graph: 3. LOG Command Flow
     User->>CLI: LOG
