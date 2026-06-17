@@ -61,12 +61,13 @@ class InvertedIndex:
         빈 역색인을 생성합니다.
         두 인덱스 모두 빈 딕셔너리로 시작합니다.
         """
+        # 💡 파이썬 현미경 해설
+        # `Dict[str, Set[str]]`: "단어"를 찾으면 "해시들의 집합(주머니)"이 나오는 딕셔너리입니다.
+        # 예: "add"라는 열쇠를 꺼내면 {"a1b2c3", "d4e5f6"} 같은 집합(Set)이 들어있습니다.
         # ── 키워드 역색인 ──
-        # 예: {"add": {"a1b2c3", "d4e5f6"}, "login": {"d4e5f6"}}
         self.keyword_index: Dict[str, Set[str]] = {}
 
         # ── 작성자 역색인 ──
-        # 예: {"alice": {"a1b2c3", "d4e5f6", "g7h8i9"}}
         self.author_index: Dict[str, Set[str]] = {}
 
     def add_commit(self, commit: 'Commit') -> None:
@@ -85,17 +86,22 @@ class InvertedIndex:
             # 대문자가 섞여있어도 똑같이 검색되도록, 모조리 소문자로(.lower()) 바꿔줍니다.
             normalized_tokens.append(token.lower())
             
+        # 💡 파이썬 현미경 해설
+        # 작성자 이름도 대소문자 구분 없이 검색되도록 소문자로 만듭니다.
+        # 그리고 이 커밋의 고유 해시(ID)도 나중에 바구니에 담기 위해 미리 꺼내둡니다.
         author_key: str = commit.author.lower()
         commit_hash: str = commit.hash
 
         # ── 2. Validation (유효성 검사) ──
         # 💡 파이썬 현미경 해설
-        # 딕셔너리(사전)에 "add"라는 단어가 처음 들어왔을 때는 담을 바구니(Set)가 없습니다.
-        # 그래서 만약 단어가 없다면(`not in`), 먼저 빈 바구니 `set()`를 새로 만들어 줍니다.
+        # 딕셔너리(사전)에 "add"라는 단어가 처음 들어왔을 때는 커밋 해시를 담을 바구니(Set)가 아직 없습니다.
+        # 그래서 만약 사전에 해당 단어가 없다면(`not in`), 먼저 빈 바구니 `set()`를 새로 만들어 줍니다.
         for keyword in normalized_tokens:
             if keyword not in self.keyword_index:
                 self.keyword_index[keyword] = set()
                 
+        # 💡 파이썬 현미경 해설
+        # 작성자 이름에 대해서도 똑같이, 사전에 등록된 적이 없는 새로운 작성자라면 빈 바구니를 만듭니다.
         if author_key not in self.author_index:
             self.author_index[author_key] = set()
 
@@ -133,11 +139,17 @@ class InvertedIndex:
         작성자 이름으로 커밋을 검색합니다.
         """
         # ── 1. Data Refinement (데이터 정제) ──
+        # 💡 파이썬 현미경 해설
+        # 저장할 때 소문자로 저장했으니, 검색할 때도 사용자의 입력을 소문자로 바꿔서 비교합니다.
         normalized_author: str = author.lower()
         
         # ── 2. Validation (유효성 검사) ──
+        # 💡 파이썬 현미경 해설
+        # 빈 문자열을 입력하면 빈 집합을 반환합니다.
         if not normalized_author:
             return set()
             
         # ── 3. Logic Execution (비즈니스 로직 실행) ──
+        # 💡 파이썬 현미경 해설
+        # 키워드 검색과 마찬가지로 `.get()`을 사용하여, 해당 작성자가 쓴 커밋들의 해시 바구니를 넘겨줍니다.
         return self.author_index.get(normalized_author, set())

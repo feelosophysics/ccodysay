@@ -86,18 +86,26 @@ class SystemMessages:
         "  Type 'help' for available commands.\n"
         "=================================================="
     )
+    # 💡 파이썬 현미경 해설
+    # 프로그램 종료 및 일반적인 예외 상황 안내 메시지들입니다.
     GOODBYE = "Goodbye!"
     UNKNOWN_COMMAND = "Unknown command: {command}. Type 'help' for available commands."
     ALREADY_UP_TO_DATE = "Already up to date."
     NO_COMMITS_YET = "No commits yet."
     NO_PATH = "No path"
 
+    # 💡 파이썬 현미경 해설
+    # 터미널에 보여질 성공 안내 메시지들입니다.
+    # 문자열 중간에 `\n`을 쓰면 화면에 출력될 때 그 부분에서 줄이 바뀝니다(엔터 효과).
+    # `{branch}`, `{user}` 등의 빈칸은 다른 파일에서 `.format(branch="main", user="alice")` 형태로 채워집니다.
     INIT_SUCCESS = "Initialized repository.\nCurrent branch: {branch}\nCurrent user: {user}"
     COMMIT_SUCCESS = "[{branch} {hash}] {message}"
     BRANCH_CREATED = "Created branch: {name}"
     SWITCHED_BRANCH = "Switched to branch: {name}"
     MERGE_SUCCESS = "Merged '{branch}' into '{head}'.\n[{head} {hash}] {message}"
     
+    # 💡 파이썬 현미경 해설
+    # 검색 결과를 보여주는 메시지입니다.
     SEARCH_NO_RESULTS = "No commits found for {search_type}."
     SEARCH_FOUND = "Found {count} commit(s) for {search_type}:"
     
@@ -143,6 +151,10 @@ class SystemMessages:
         f"{'Size':>8} | {'Merge Sort (s)':>16} | {'Quick Sort (s)':>16} | {'Winner':>8}\n"
         "-----------------------------------------------------------------"
     )
+    # 💡 파이썬 현미경 해설
+    # `{merge:>16.6f}`의 의미: 
+    # `>16`: 16칸을 잡고 오른쪽으로 정렬해라
+    # `.6f`: 소수점 아래 6자리까지 보여주는 실수(Float)로 출력해라
     BENCHMARK_ROW = "{size:>8} | {merge:>16.6f} | {quick:>16.6f} | {winner:>8}"
     BENCHMARK_FOOTER = (
         "-----------------------------------------------------------------\n\n"

@@ -172,18 +172,28 @@ class Repository:
         if not clean_user_name:
             return ErrorMessages.INVALID_INIT
 
+        # 💡 파이썬 현미경 해설
+        # 본격적으로 저장소 공간을 깨끗하게 비웁니다(초기화).
+        # `{}`는 빈 딕셔너리, `set()`은 빈 집합을 의미합니다.
         self.commits = {}
         self.branches = {}
         self._hash_set = set()
         self._hash_counter = 0
         self.inverted_index = InvertedIndex()
 
-        # `ConfigConstants.DEFAULT_BRANCH`는 아까 constants.py에서 설정한 "main" 입니다.
-        # "main" 브랜치를 만들고 처음엔 아무 커밋도 없으니 `None`으로 연결해 둡니다.
+        # 💡 파이썬 현미경 해설
+        # `ConfigConstants.DEFAULT_BRANCH`는 "main"이라는 문자열 상수를 담고 있습니다.
+        # `self.branches` 딕셔너리에 "main"이라는 열쇠(키)를 만들고, 
+        # 아직 아무 커밋도 가리키지 않으므로 값은 `None`으로 연결해 둡니다.
         self.branches[ConfigConstants.DEFAULT_BRANCH] = None
+        
+        # 현재 위치(head)를 방금 만든 "main"으로 설정합니다.
         self.head = ConfigConstants.DEFAULT_BRANCH
         self.current_user = clean_user_name
-        self.initialized = True  # 이제 초기화 완료되었다고 도장을 찍어줍니다.
+        
+        # 💡 파이썬 현미경 해설
+        # 파이썬의 참/거짓 값인 `True`를 넣어, 이제 초기화가 완료되었다고 시스템에 도장을 찍어줍니다!
+        self.initialized = True
 
         return SystemMessages.INIT_SUCCESS.format(branch=self.head, user=clean_user_name)
 
@@ -269,14 +279,22 @@ class Repository:
         """
         clean_branch_name: str = branch_name.strip()
 
+        # 💡 파이썬 현미경 해설
+        # 저장소가 초기화되지 않았거나 이름이 비었는지 등 여러가지 예외 상황을 먼저 걸러냅니다.
         if not self.initialized:
             return ErrorMessages.REPO_NOT_INIT
         if not clean_branch_name:
             return ErrorMessages.INVALID_SWITCH
+            
+        # 💡 파이썬 현미경 해설
+        # `not in`: `in`의 반대입니다. 우리가 아는 브랜치 목록 딕셔너리(`self.branches`)에
+        # 방금 입력받은 이름이 '들어있지 않다면(not in)' 에러를 냅니다.
         if clean_branch_name not in self.branches:
             return ErrorMessages.UNKNOWN_BRANCH.format(name=clean_branch_name)
 
-        # 현재 가리키고 있는 브랜치 기준점(head)을 내가 쓴 브랜치명으로 바꿉니다.
+        # 💡 파이썬 현미경 해설
+        # 저장소의 `self.head` 변수는 현재 우리가 위치한 브랜치를 가리키는 나침반입니다.
+        # 이 나침반이 가리키는 방향을 방금 입력받은 새로운 브랜치 이름으로 덮어씌웁니다. (= 브랜치 전환 완료!)
         self.head = clean_branch_name
         return SystemMessages.SWITCHED_BRANCH.format(name=clean_branch_name)
 
@@ -300,17 +318,24 @@ class Repository:
         if clean_branch_name == self.head:
             return ErrorMessages.MERGE_SELF
 
+        # 💡 파이썬 현미경 해설
+        # 머지는 두 갈래의 가지(현재 브랜치, 대상 브랜치)를 합치는 것이므로,
+        # 두 브랜치가 각각 현재 가리키고 있는 최신 커밋(해시값) 두 개를 모두 찾아와야 합니다.
         current_hash: Optional[str] = None
         if self.head is not None:
             current_hash = self.branches.get(self.head)
             
         target_hash: Optional[str] = self.branches.get(clean_branch_name)
 
+        # 둘 중 하나라도 커밋이 아예 없다면 머지할 내용이 없으므로 에러 처리합니다.
         if current_hash is None:
             return ErrorMessages.MERGE_NO_COMMITS
         elif target_hash is None:
             return ErrorMessages.MERGE_NO_COMMITS
             
+        # 💡 파이썬 현미경 해설
+        # 두 브랜치가 가리키는 커밋이 완전히 똑같다면? (이미 합쳐져 있거나 내용이 같음)
+        # 굳이 새로 합칠 필요가 없으니 업데이트 완료라고 알려줍니다.
         if current_hash == target_hash:
             return SystemMessages.ALREADY_UP_TO_DATE
 
@@ -322,6 +347,10 @@ class Repository:
         # 일반 커밋은 부모가 1개지만, 머지(병합) 커밋은 두 갈래가 하나로 합쳐졌기 때문에 부모가 2개입니다!
         parents: List[str] = [current_hash, target_hash]
         
+        # 💡 파이썬 현미경 해설
+        # `Commit(...)`: 커밋 클래스의 붕어빵 틀에 재료를 넣어 새로운 머지 커밋 객체를 만듭니다.
+        # `A if 조건 else B`: 파이썬의 '삼항 연산자'입니다. (조건이 참이면 A, 거짓이면 B를 선택)
+        # 즉, 현재 사용자가 설정되어 있으면 그 이름을 쓰고, 아니면 "Unknown"을 씁니다.
         merge_commit: Commit = Commit(
             message=merge_message,
             author=self.current_user if self.current_user is not None else "Unknown",
@@ -329,14 +358,24 @@ class Repository:
             parents=parents
         )
 
+        # 💡 파이썬 현미경 해설
+        # 방금 만든 머지 커밋의 해시가 정말로 유일한지 검사합니다. (중복 방지)
         self._ensure_unique_hash(merge_commit)
+        
+        # 💡 파이썬 현미경 해설
+        # 검사가 끝난 안전한 머지 커밋을 저장소의 전체 커밋 딕셔너리(`self.commits`)에 등록합니다.
         self.commits[merge_commit.hash] = merge_commit
         
+        # 💡 파이썬 현미경 해설
+        # 현재 위치한 브랜치(head)가 이 새로운 머지 커밋을 가리키도록 업데이트해 줍니다.
         if self.head is not None:
             self.branches[self.head] = merge_commit.hash
             
+        # 검색을 빠르게 하기 위한 역색인(Inverted Index) 저장소에도 이 커밋을 등록해 둡니다.
         self.inverted_index.add_commit(merge_commit)
 
+        # 💡 파이썬 현미경 해설
+        # 성공 메시지의 빈칸들(`{branch}`, `{head}` 등)에 알맞은 변수들을 채워 넣어서(`.format(...)`) 반환합니다!
         return SystemMessages.MERGE_SUCCESS.format(
             branch=clean_branch_name, 
             head=self.head, 
@@ -348,20 +387,32 @@ class Repository:
         """
         현재 HEAD가 가리키는 커밋의 해시를 반환합니다.
         """
+        # 💡 파이썬 현미경 해설
+        # 저장소가 없거나, 현재 브랜치(head)가 없다면 아무것도 반환하지 않습니다(`None`).
         if not self.initialized:
             return None
         if self.head is None:
             return None
+            
+        # 💡 파이썬 현미경 해설
+        # 딕셔너리의 `.get(키)` 기능을 사용하여, 현재 브랜치명(`self.head`)이 가리키고 있는 
+        # 최신 커밋의 해시 문자열을 안전하게 꺼내서 반환합니다.
         return self.branches.get(self.head)
 
     def get_all_commits(self) -> Dict[str, Commit]:
         """
         저장소의 모든 커밋을 딕셔너리로 반환합니다.
         """
+        # 💡 파이썬 현미경 해설
+        # 저장소가 가지고 있는 전체 커밋 딕셔너리를 그대로 통째로 넘겨줍니다.
+        # 함수의 리턴 타입이 `Dict[str, Commit]`로 명시되어 있으므로, "문자열:커밋객체" 형태의 사전이 나갑니다.
         return self.commits
 
     def get_commit(self, commit_hash: str) -> Optional[Commit]:
         """
         해시로 특정 커밋을 조회합니다.
         """
+        # 💡 파이썬 현미경 해설
+        # 딕셔너리의 `.get()`을 쓰면, 만약 해당 해시값(키)으로 저장된 커밋이 없을 때 
+        # 프로그램이 멈추면서 에러를 내는 대신 조용히 `None`을 돌려주어 안전합니다.
         return self.commits.get(commit_hash)
