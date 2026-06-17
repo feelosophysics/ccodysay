@@ -30,17 +30,14 @@ index.py — 역색인(Inverted Index) 모듈
   - 추가 메모리를 사용합니다 (인덱스 저장 공간).
   - 커밋 추가 시 인덱스 갱신 비용이 있습니다.
   - 이것은 "공간-시간 트레이드오프(space-time trade-off)"의 전형적 예입니다.
-
-────────────────────────────────────────────
-실제 세계에서의 역색인
-────────────────────────────────────────────
-- Google, Naver 등 검색 엔진의 핵심 자료구조입니다.
-- Elasticsearch, Apache Lucene 같은 검색 엔진이 역색인을 사용합니다.
-- 데이터베이스의 텍스트 인덱스(Full-Text Index)도 역색인의 변형입니다.
 """
 
 from typing import Set, Dict, List, TYPE_CHECKING
 
+# 💡 파이썬 현미경 해설
+# 서로 다른 두 파일이 서로를 부르면(Import) '순환 참조' 에러가 날 수 있습니다.
+# TYPE_CHECKING은 코드가 실제로 실행될 때는 무시되고, 
+# 편집기(IDE)가 타입 힌트를 검사할 때만 `models.py`를 불러오게 해주는 마법의 방패입니다!
 if TYPE_CHECKING:
     from minigit.models import Commit
 
@@ -57,10 +54,6 @@ class InvertedIndex:
     - 같은 커밋이 중복 등록되는 것을 자동으로 방지합니다.
     - 'in' 연산이 O(1) 평균입니다 (리스트는 O(n)).
     - 합집합(|), 교집합(&) 같은 집합 연산이 가능합니다.
-
-    Attributes:
-        keyword_index (Dict[str, Set[str]]): {키워드(str): {커밋 해시(str), ...}}
-        author_index (Dict[str, Set[str]]):  {작성자(str): {커밋 해시(str), ...}}
     """
 
     def __init__(self) -> None:
@@ -79,35 +72,26 @@ class InvertedIndex:
     def add_commit(self, commit: 'Commit') -> None:
         """
         새 커밋을 역색인에 등록합니다.
-
-        ── 토큰화(Tokenization) 과정 ──
-        1. 커밋 메시지를 공백 기준으로 분리(split)합니다.
-           예: "Add login feature" → ["Add", "login", "feature"]
-        2. 각 토큰을 소문자로 변환(lower)합니다.
-           예: ["Add", "login", "feature"] → ["add", "login", "feature"]
-        3. 각 토큰을 keyword_index에 등록합니다.
-
-        ── 왜 소문자로 정규화하는가? ──
-        대소문자를 구분하지 않는 검색을 위해서입니다.
-        "Add"로 커밋했더라도 "add"로 검색할 수 있어야 합니다.
-        이것을 정규화(normalization)라고 합니다.
-
-        Args:
-            commit (Commit): 역색인에 추가할 커밋 객체
         """
         # ── 1. Data Refinement (데이터 정제) ──
-        # split()은 인자 없이 호출하면 연속 공백도 하나로 처리합니다.
-        # 예: "  Add   login  " → ["Add", "login"]
+        # 💡 파이썬 현미경 해설
+        # .split()에 아무것도 넣지 않으면 모든 종류의 띄어쓰기(스페이스, 탭, 엔터)를
+        # 기준으로 알아서 단어를 쪼개줍니다!
         tokens: List[str] = commit.message.split()
         normalized_tokens: List[str] = []
+        
         for token in tokens:
+            # 💡 파이썬 현미경 해설
+            # 대문자가 섞여있어도 똑같이 검색되도록, 모조리 소문자로(.lower()) 바꿔줍니다.
             normalized_tokens.append(token.lower())
             
         author_key: str = commit.author.lower()
         commit_hash: str = commit.hash
 
         # ── 2. Validation (유효성 검사) ──
-        # dict에 키가 없으면 빈 set을 먼저 생성합니다.
+        # 💡 파이썬 현미경 해설
+        # 딕셔너리(사전)에 "add"라는 단어가 처음 들어왔을 때는 담을 바구니(Set)가 없습니다.
+        # 그래서 만약 단어가 없다면(`not in`), 먼저 빈 바구니 `set()`를 새로 만들어 줍니다.
         for keyword in normalized_tokens:
             if keyword not in self.keyword_index:
                 self.keyword_index[keyword] = set()
@@ -116,8 +100,8 @@ class InvertedIndex:
             self.author_index[author_key] = set()
 
         # ── 3. Logic Execution (비즈니스 로직 실행) ──
-        # 커밋 해시를 해당 키워드와 작성자의 집합에 추가합니다.
-        # set이므로 같은 해시가 이미 있으면 무시됩니다.
+        # 💡 파이썬 현미경 해설
+        # 이제 단어가 등록된 바구니(Set)를 꺼내서, 거기에 현재 커밋 해시를 쏙 집어넣습니다(.add).
         for keyword in normalized_tokens:
             self.keyword_index[keyword].add(commit_hash)
             
@@ -126,44 +110,27 @@ class InvertedIndex:
     def search_keyword(self, keyword: str) -> Set[str]:
         """
         키워드로 커밋을 검색합니다.
-
-        ── 시간복잡도 ──
-        - dict 조회: O(1) 평균
-        - 결과 복사: O(K), K = 해당 키워드를 포함하는 커밋 수
-
-        Args:
-            keyword (str): 검색할 키워드 (예: "login")
-
-        Returns:
-            Set[str]: 해당 키워드를 포함하는 커밋 해시들의 집합
-                      키워드가 인덱스에 없으면 빈 집합 반환
         """
         # ── 1. Data Refinement (데이터 정제) ──
-        # 검색 키워드도 소문자로 정규화하여 대소문자 무관 검색을 수행합니다.
+        # 검색할 때도 사용자가 대문자를 치든 말든 소문자로 바꿔서 검색합니다.
         normalized_keyword: str = keyword.lower()
         
         # ── 2. Validation (유효성 검사) ──
+        # 💡 파이썬 현미경 해설
+        # 만약 아무것도 안 쳤다면 빈 바구니(set())를 그대로 돌려줍니다.
         if not normalized_keyword:
             return set()
             
         # ── 3. Logic Execution (비즈니스 로직 실행) ──
-        # .get()은 키가 없으면 두 번째 인자(기본값)를 반환합니다.
+        # 💡 파이썬 현미경 해설
+        # `.get(키, 기본값)`
+        # 사전에 그 단어가 있으면 그 단어에 해당하는 바구니를 주고, 
+        # 검색결과가 0개(사전에 없음)라면 에러를 내는 대신 빈 바구니(set())를 줘라!
         return self.keyword_index.get(normalized_keyword, set())
 
     def search_author(self, author: str) -> Set[str]:
         """
         작성자 이름으로 커밋을 검색합니다.
-
-        ── 시간복잡도 ──
-        - dict 조회: O(1) 평균
-        - 결과 복사: O(K), K = 해당 작성자의 커밋 수
-
-        Args:
-            author (str): 검색할 작성자 이름 (예: "Alice")
-
-        Returns:
-            Set[str]: 해당 작성자의 커밋 해시들의 집합
-                      작성자가 인덱스에 없으면 빈 집합 반환
         """
         # ── 1. Data Refinement (데이터 정제) ──
         normalized_author: str = author.lower()
